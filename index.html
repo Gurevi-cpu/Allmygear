@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ALLMYGEAR — Gear List</title>
+  <!-- Preconnect for faster font and API loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ezsurtlznvwsncszfckj.supabase.co">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Outfit:wght@400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- HEIC to JPEG converter for iPhone photos -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-service.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="header-left">
+      <button id="signInBtn" class="btn primary" style="display:block;margin-right:12px;">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9"/>
+        </svg>
+        Sign In
+      </button>
+      <div id="userStatus" style="display:none;align-items:center;gap:8px;margin-right:12px;">
+        <button id="profileBtn">
+          <img id="userAvatar" src="" alt="Avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:none;">
+          <span id="userEmail"></span>
+        </button>
+        <button id="signOutBtn" class="btn icon" title="Sign out" aria-label="Sign out" style="width:32px;height:32px;">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="header-center">
+      <a class="brand" href="#" aria-label="ALLMYGEAR">
+        <img src="AMG_icon.svg" alt="ALLMYGEAR logo" class="logo">
+      </a>
+      <p class="subtitle">Create handy gear lists for your trips</p>
+    </div>
+    <div class="header-right">
+      <div class="summary">
+        <div>items: <strong id="count">0</strong></div>
+        <div>total cost: <strong id="totalPrice">0</strong> ₽</div>
+      </div>
+    </div>
+    <select id="filterCategory" style="display:none">
+      <option value="">All categories</option>
+    </select>
+  </header>
+
+  <nav class="tabs">
+    <button id="addBtn" class="add-btn" aria-label="Add gear">+</button>
+    <button class="tab active" data-tab="gear">My Gear</button>
+    <button class="tab" data-tab="checklist">My Checklists</button>
+    <button id="newChecklistBtn" class="add-btn" aria-label="Add checklist">+</button>
+  </nav>
+
+  <main class="container">
+    <section class="tab-content active" id="gearSection">
+      <div class="cards" id="cards">
+        <!-- Gear cards will be inserted here -->
+      </div>
+    </section>
+    
+    <section class="tab-content" id="checklistSection">
+      <div class="cards" id="checklistCards">
+        <!-- Checklist cards will be inserted here -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>ALL MY GEAR 2025</small>
+  </footer>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="modalTitle">Add gear</h2>
+          <p class="modal-subtitle">Add new equipment to your gear list</p>
+        </div>
+        <button id="closeModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="gearForm" class="form">
+        <div class="form-grid">
+          <div class="form-field full-width">
+            <label class="field-label">Name *</label>
+            <input id="name" type="text" class="field-input" placeholder="e.g. Sleeping bag" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="field-label">Category</label>
+          <select id="category" class="field-input">
+            <option value="">— No Category —</option>
+            <option>Shelter</option>
+            <option>Sleep System</option>
+            <option>Camp Furniture</option>
+            <option>Clothing</option>
+            <option>Footwear</option>
+            <option>Packs & Bags</option>
+            <option>Cooking</option>
+            <option>Electronics</option>
+            <option>Lighting</option>
+            <option>First Aid / Safety</option>
+            <option>Personal items / Documents</option>
+            <option>Knives & Tools</option>
+            <option>Technical Gear</option>
+            <option>Sports Equipment</option>
+            <option>Fishing & Hunting</option>
+            <option>Climbing & Rope</option>
+            <option>Winter & Snow</option>
+            <option>Consumables</option>
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">Brand</label>
+            <input id="brand" type="text" class="field-input" placeholder="e.g. Marmot" list="brand-list" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label class="field-label">Model</label>
+            <input id="model" type="text" class="field-input" placeholder="e.g. Trestles 30" list="model-list" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">Weight (g)</label>
+            <input id="weight" type="number" class="field-input" min="0" step="1" placeholder="in grams">
+          </div>
+          <div class="form-field">
+            <label class="field-label">Price (₽)</label>
+            <input id="price" type="number" class="field-input" min="0" step="0.01" placeholder="in RUB">
+          </div>
+          <div class="form-field">
+            <label class="field-label">Year of purchase</label>
+            <input id="year" type="number" class="field-input" min="1900" max="2100" step="1" placeholder="2024">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="field-label">Level of satisfaction</label>
+          <div class="star-rating">
+            <input type="radio" id="star5" name="rating" value="5">
+            <label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4">
+            <label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3">
+            <label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2">
+            <label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1">
+            <label for="star1">★</label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="field-label">Comment</label>
+          <textarea id="comment" class="field-input" rows="2" maxlength="200" placeholder="Short note about this gear..."></textarea>
+        </div>
+
+        <div class="form-section">
+          <label class="field-label">Photo</label>
+          <div class="modal-photo-section">
+            <div class="modal-photo-container">
+              <div class="photo-preview-wrapper" id="modalPhotoPreviewWrapper">
+                <span class="no-photo-text">No photo</span>
+                <img id="photoPreview" alt="Preview" src="" style="display:none">
+              </div>
+              <input id="photo" type="file" class="field-input" accept="image/*,.heic,.heif" style="display:none">
+              <div class="photo-overlay-buttons">
+                <button type="button" class="photo-overlay-btn" id="modalAddPhotoBtn" title="Add photo">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V9h-3V7H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/>
+                  </svg>
+                </button>
+                <button type="button" class="photo-overlay-btn" id="modalRemovePhotoBtn" title="Remove photo" style="display:none">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="photoMessage" class="photo-message" aria-live="polite"></div>
+        </div>
+
+        <div class="form-section">
+          <label class="field-label">Storage Location</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="storage" class="field-input" style="flex:1;">
+              <option value="">No storage specified</option>
+            </select>
+            <button type="button" id="createStorageInModal" class="btn icon" title="Create new storage" style="flex-shrink:0;">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+          <div id="storageInlineForm" style="display:none;margin-top:8px;">
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="newStorageName" class="field-input" placeholder="New storage name..." style="flex:1;">
+              <button type="button" id="saveStorageInline" class="btn primary" style="flex-shrink:0;">Save</button>
+              <button type="button" id="cancelStorageInline" class="btn secondary" style="flex-shrink:0;">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section" id="addToChecklistsSection" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label class="field-label" style="margin:0;">Add to Checklists</label>
+            <button type="button" id="createChecklistInModal" class="btn icon" title="Create new checklist" style="flex-shrink:0;">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+          <div id="checklistInlineForm" style="display:none;margin-bottom:8px;">
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="newChecklistName" class="field-input" placeholder="New checklist name..." style="flex:1;">
+              <button type="button" id="saveChecklistInline" class="btn primary" style="flex-shrink:0;">Save</button>
+              <button type="button" id="cancelChecklistInline" class="btn secondary" style="flex-shrink:0;">Cancel</button>
+            </div>
+          </div>
+          <div id="addToChecklistsContainer" style="max-height:200px;overflow-y:auto;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px;">
+            <!-- Checklist checkboxes will be rendered here -->
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button id="saveBtn" type="submit" class="btn-primary">Save</button>
+          <button id="resetBtn" type="button" class="btn-secondary">Clear</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="checklistModal" class="modal-overlay hidden">
+    <div class="checklist-modal">
+      <div class="checklist-modal-header">
+        <div class="modal-title-section">
+          <h2 id="checklistModalTitle">New Checklist</h2>
+          <p class="modal-subtitle">Create a new gear checklist for your trip</p>
+        </div>
+        <button id="closeChecklistModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="checklist-modal-body">
+        <form id="checklistForm" class="checklist-form">
+          <!-- Basic Info Section -->
+          <div class="form-section">
+            <h3 class="section-title">Basic Information</h3>
+            <div class="form-grid">
+              <div class="form-field full-width">
+                <label class="field-label">Checklist Name *</label>
+                <input id="checklistName" type="text" class="field-input" placeholder="e.g. Weekend Hike" required>
+              </div>
+              <div class="form-field">
+                <label class="field-label">Start Date</label>
+                <input id="checklistStartDate" type="date" class="field-input">
+              </div>
+              <div class="form-field">
+                <label class="field-label">End Date</label>
+                <input id="checklistEndDate" type="date" class="field-input">
+              </div>
+              <div class="form-field full-width">
+                <label class="field-label">Activity Tags</label>
+                <div class="tags-input-container">
+                  <div class="tags-display" id="tagsDisplay"></div>
+                  <div class="add-tag-section">
+                    <input id="newTagInput" type="text" class="tag-input" placeholder="Add tag...">
+                    <button type="button" id="addTagBtn" class="add-tag-btn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categories Section -->
+          <div class="form-section">
+            <h3 class="section-title">
+              Categories
+              <div class="section-actions">
+                <button type="button" id="selectAllCategories" class="action-btn">Select All</button>
+                <button type="button" id="deselectAllCategories" class="action-btn">Clear All</button>
+              </div>
+            </h3>
+            <div id="categoriesCheckboxes" class="checkbox-grid"></div>
+          </div>
+
+          <!-- Gear Items Section -->
+          <div class="form-section" id="gearItemsSection" style="display:none;">
+            <h3 class="section-title">
+              Gear Items
+              <div class="section-actions">
+                <button type="button" id="selectAllItems" class="action-btn">Select All</button>
+                <button type="button" id="deselectAllItems" class="action-btn">Clear All</button>
+              </div>
+            </h3>
+            <div style="padding:8px 0 12px;">
+              <input id="checklistItemSearch" type="search" class="field-input" placeholder="Search gear by name, brand or model..." style="width:100%;">
+            </div>
+            <div id="gearItemsCheckboxes" class="gear-items-grid"></div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="checklist-modal-footer">
+        <button id="cancelChecklistBtn" type="button" class="btn-secondary">Cancel</button>
+        <button id="saveChecklistBtn" type="submit" class="btn-primary">Create Checklist</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="manageChecklistsModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2>Manage Checklists</h2>
+          <p class="modal-subtitle">View and manage your gear checklists</p>
+        </div>
+        <button id="closeManageModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="checklistsList" class="checklists-list">
+          <!-- Checklists list will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content confirm-dialog">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <div class="confirm-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          </div>
+          <h2 id="confirmTitle">Delete item?</h2>
+          <p id="confirmMessage" class="modal-subtitle">This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <button id="confirmCancel" class="btn-secondary">Cancel</button>
+        <button id="confirmOk" class="btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Authentication Modal -->
+  <div id="authModal" class="modal hidden">
+    <div class="modal-content" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="authTitle">Sign In</h2>
+          <p class="modal-subtitle" id="authSubtitle">Access your gear lists from anywhere</p>
+        </div>
+        <button id="closeAuthModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="authContent">
+          <!-- OAuth Sign In -->
+          <div id="oauthSignInSection">
+            <div class="oauth-buttons">
+              <button id="googleSignInBtn" class="oauth-btn" title="Continue with Google">
+                <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+                  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                  <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                  <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                  <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                </svg>
+              </button>
+              <button id="appleSignInBtn" class="oauth-btn" title="Continue with Apple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                </svg>
+              </button>
+              <button id="githubSignInBtn" class="oauth-btn" title="Continue with GitHub">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+              </button>
+              <button id="discordSignInBtn" class="oauth-btn" title="Continue with Discord">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+              </button>
+              <button id="facebookSignInBtn" class="oauth-btn" title="Continue with Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </button>
+              <button id="twitterSignInBtn" class="oauth-btn" title="Continue with X">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="oauth-divider">
+              <span>or sign in with email</span>
+            </div>
+          </div>
+
+          <!-- Email/Password Form -->
+          <form id="authForm" class="form">
+            <div class="form-section" id="nicknameSection" style="display:none;">
+              <label class="field-label">Nickname</label>
+              <input id="authNickname" type="text" class="field-input" placeholder="Your name">
+            </div>
+            <div class="form-section">
+              <label class="field-label">Email</label>
+              <input id="authEmail" type="email" class="field-input" required placeholder="your@email.com">
+            </div>
+            <div class="form-section">
+              <label class="field-label">Password</label>
+              <input id="authPassword" type="password" class="field-input" required placeholder="••••••••" minlength="6">
+            </div>
+            <div id="authError" style="color:#fb7185;font-size:13px;margin-bottom:12px;display:none;"></div>
+            <div class="form-actions">
+              <button id="authSubmitBtn" type="submit" class="btn-primary" style="flex:1;">Sign In</button>
+            </div>
+          </form>
+
+          <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted);">
+            <span id="authToggleText">Don't have an account?</span>
+            <button id="authToggleBtn" class="btn-link" style="color:var(--brand-orange);font-weight:600;">Sign Up</button>
+          </div>
+        </div>
+        <div id="authLoading" style="display:none;text-align:center;padding:40px;">
+          <div class="spinner" style="margin:0 auto 16px;"></div>
+          <p style="color:var(--muted);">Signing in...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal (updated layout) -->
+  <div id="profileModal" class="modal hidden">
+    <div class="modal-content profile-modal" style="max-width:720px;">
+      <div class="modal-header">
+        <h2>Profile Settings</h2>
+        <button id="closeProfileModal" class="btn icon" aria-label="Close">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="profile-body">
+        <div class="profile-left">
+          <div class="avatar-wrap">
+            <img id="profileAvatar" src="" alt="Avatar" class="profile-avatar">
+            <button id="changeAvatarBtn" class="avatar-change-btn" title="Change avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+          <div id="avatarMessage" class="muted small-space"></div>
+
+          <div class="profile-actions-vertical">
+            <button id="profileSignOutBtn" class="btn ghost">Sign out</button>
+          </div>
+        </div>
+
+        <div class="profile-right">
+          <div class="form-group">
+            <label class="form-label">Nickname</label>
+            <input id="profileNickname" type="text" class="form-input" placeholder="Your name">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input id="profileEmail" type="email" class="form-input readonly" readonly>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">New Password <span class="muted">(leave empty to keep current)</span></label>
+            <input id="profilePassword" type="password" class="form-input" placeholder="••••••••" minlength="6">
+          </div>
+
+          <div id="profileError" class="form-note error" style="display:none;"></div>
+          <div id="profileSuccess" class="form-note success" style="display:none;"></div>
+
+          <div class="form-actions" style="margin-top:16px;display:flex;gap:12px;">
+            <button id="cancelProfileBtn" class="btn">Cancel</button>
+            <button id="saveProfileBtn" class="btn primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal hidden">
+    <div class="modal-content share-modal">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="shareModalTitle">Share Item</h2>
+          <p class="modal-subtitle">Create a link to share this gear item</p>
+        </div>
+        <button id="closeShareModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body share-modal-body">
+        <div id="shareLoading" class="share-loading">
+          <div class="spinner"></div>
+          <span>Generating share link...</span>
+        </div>
+        <div id="shareContent" style="display:none;">
+          <p class="share-description">Share this link with others. They can view the item and save it to their collection.</p>
+          <div class="share-link-wrapper">
+            <input id="shareLinkInput" type="text" readonly class="share-link-input">
+            <button id="copyShareLink" class="btn primary copy-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <p id="shareCopySuccess" class="share-copy-success" style="display:none;">Link copied to clipboard!</p>
+          
+          <div class="share-messengers">
+            <p class="share-messengers-title">Share via:</p>
+            <div class="share-messengers-buttons">
+              <button id="shareWhatsApp" class="share-messenger-btn whatsapp" title="Share to WhatsApp">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareTelegram" class="share-messenger-btn telegram" title="Share to Telegram">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareFacebook" class="share-messenger-btn facebook" title="Share to Facebook">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareEmail" class="share-messenger-btn email" title="Share via Email">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <p class="share-expiry">Link expires in 30 days</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Checklist Modal -->
+  <div id="shareChecklistModal" class="modal hidden">
+    <div class="modal-content share-modal">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="shareChecklistModalTitle">Share Checklist</h2>
+          <p class="modal-subtitle">Create a link to share this checklist</p>
+        </div>
+        <button id="closeShareChecklistModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body share-modal-body">
+        <div id="shareChecklistLoading" class="share-loading">
+          <div class="spinner"></div>
+          <span>Generating share link...</span>
+        </div>
+        <div id="shareChecklistContent" style="display:none;">
+          <p class="share-description">Share this link with others. They can view the checklist and save items to their collection.</p>
+          <div class="share-link-wrapper">
+            <input id="shareChecklistLinkInput" type="text" readonly class="share-link-input">
+            <button id="copyShareChecklistLink" class="btn primary copy-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <p id="shareChecklistCopySuccess" class="share-copy-success" style="display:none;">Link copied to clipboard!</p>
+          
+          <div class="share-messengers">
+            <p class="share-messengers-title">Share via:</p>
+            <div class="share-messengers-buttons">
+              <button id="shareChecklistWhatsApp" class="share-messenger-btn whatsapp" title="Share to WhatsApp">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareChecklistTelegram" class="share-messenger-btn telegram" title="Share to Telegram">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareChecklistFacebook" class="share-messenger-btn facebook" title="Share to Facebook">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button id="shareChecklistEmail" class="share-messenger-btn email" title="Share via Email">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <p class="share-expiry">Link expires in 30 days</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Shared Item Modal -->
+  <div id="viewSharedModal" class="modal hidden">
+    <div class="modal-content shared-item-modal">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2>Shared Gear Item</h2>
+          <p class="modal-subtitle">Someone shared this gear with you</p>
+        </div>
+        <button id="closeViewSharedModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="sharedItemContent" class="shared-item-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="shared-item-actions">
+        <button id="closeSharedView" class="btn-secondary">Close</button>
+        <button id="saveSharedItem" class="btn-primary save-shared-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          </svg>
+          Save to My Gear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Storage Modal -->
+  <div id="createStorageModal" class="modal hidden">
+    <div class="modal-content" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2>Create Storage Location</h2>
+          <p class="modal-subtitle">Add a new place where you keep your gear</p>
+        </div>
+        <button id="closeCreateStorageModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="createStorageForm" class="form">
+          <div class="form-group">
+            <label for="storageNameInput">Storage Name</label>
+            <input type="text" id="storageNameInput" placeholder="e.g., Garage, Basement, Closet" required autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button type="button" id="cancelCreateStorage" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Create Storage</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Storages Modal -->
+  <div id="manageStoragesModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2>Manage Storage Locations</h2>
+          <p class="modal-subtitle">Edit or delete your storage locations</p>
+        </div>
+        <button id="closeManageStoragesModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="storagesList" class="storages-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Storage Modal -->
+  <div id="confirmDeleteStorageModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="confirmDeleteStorageTitle">Delete Storage?</h2>
+          <p class="modal-subtitle" id="confirmDeleteStorageMessage">Are you sure you want to delete this storage location?</p>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:24px 28px;">
+        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0;">
+          <button id="cancelDeleteStorage" class="btn-secondary">Cancel</button>
+          <button id="confirmDeleteStorage" class="btn-primary" style="background:#ef4444;box-shadow:0 2px 8px rgba(239,68,68,0.3);">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Storage Name Modal -->
+  <div id="editStorageNameModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 id="editStorageNameTitle">Rename Storage</h2>
+          <p class="modal-subtitle">Enter new name for storage location</p>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:24px 28px;">
+        <div class="form-section" style="margin-bottom:20px;">
+          <input type="text" id="editStorageNameInput" class="field-input" placeholder="Storage name..." style="width:100%;">
+        </div>
+        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0;">
+          <button id="cancelEditStorageName" class="btn-secondary">Cancel</button>
+          <button id="confirmEditStorageName" class="btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

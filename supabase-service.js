@@ -1,0 +1,1218 @@
+// Supabase Service Layer
+// Handles authentication, database operations, and storage
+
+const SupabaseService = {
+  currentUser: null,
+  
+  // ==================== AUTHENTICATION ====================
+  
+  async signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithApple() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithGitHub() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithDiscord() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithFacebook() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithTwitter() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signInWithEmail(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    if (error) throw error
+    this.currentUser = data.user
+    return data
+  },
+  
+  async signUpWithEmail(email, password, nickname) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin + window.location.pathname,
+        data: {
+          nickname: nickname
+        }
+      }
+    })
+    if (error) throw error
+    return data
+  },
+  
+  async signOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+    this.currentUser = null
+  },
+  
+  async getCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    this.currentUser = user
+    return user
+  },
+  
+  onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChanged((event, session) => {
+      this.currentUser = session?.user || null
+      callback(event, session)
+    })
+  },
+  
+  async updateProfile(nickname, newPassword, avatarPath) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const updates = {}
+    
+    // Always update nickname in metadata
+    if (nickname) {
+      updates.data = { nickname }
+      
+      // Add avatar to metadata if provided
+      if (avatarPath) {
+        updates.data.avatar_url = avatarPath
+      }
+    }
+    
+    // Update password separately if provided
+    if (newPassword) {
+      const { error: pwdError } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+      if (pwdError) {
+        console.error('Password update error:', pwdError)
+        throw pwdError
+      }
+    }
+    
+    // Update user metadata (nickname and avatar)
+    if (updates.data) {
+      const { data, error } = await supabase.auth.updateUser(updates)
+      if (error) {
+        console.error('Metadata update error:', error)
+        throw error
+      }
+      this.currentUser = data.user
+      return data
+    }
+    
+    return { user: this.currentUser }
+  },
+  
+  // ==================== GEAR ITEMS ====================
+  
+  async getAllGearItems() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('gear_items')
+      .select('*')
+      .eq('user_id', this.currentUser.id)
+      .order('category', { ascending: true })
+      .order('order_index', { ascending: true, nullsLast: true })
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  },
+  
+  // Cache for max order index to avoid extra queries
+  _maxOrderCache: null,
+  _maxOrderCacheTime: 0,
+  
+  async createGearItem(item) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Use cached max order if available and fresh (within 5 seconds)
+    const now = Date.now()
+    let newOrderIndex
+    
+    if (this._maxOrderCache !== null && (now - this._maxOrderCacheTime) < 5000) {
+      // Use cached value and increment
+      this._maxOrderCache++
+      newOrderIndex = this._maxOrderCache
+    } else {
+      // Get the maximum order_index for this user
+      const { data: maxOrderData } = await supabase
+        .from('gear_items')
+        .select('order_index')
+        .eq('user_id', this.currentUser.id)
+        .order('order_index', { ascending: false })
+        .limit(1)
+      
+      const maxOrder = maxOrderData?.[0]?.order_index ?? -1
+      newOrderIndex = maxOrder + 1
+      this._maxOrderCache = newOrderIndex
+      this._maxOrderCacheTime = now
+    }
+    
+    const { data, error } = await supabase
+      .from('gear_items')
+      .insert([{
+        id: item.id,
+        user_id: this.currentUser.id,
+        category: item.category,
+        name: item.name,
+        brand: item.brand,
+        model: item.model,
+        weight: item.weight,
+        price: item.price,
+        year: item.year,
+        rating: item.rating,
+        comment: item.comment || '',
+        image_path: item.image || null,
+        storage_id: item.storageId || null,
+        order_index: newOrderIndex,
+        created_at: item.created ? new Date(item.created).toISOString() : new Date().toISOString()
+      }])
+      .select()
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async updateGearItem(id, updates) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    let imageToSave = updates.image
+    
+    // Handle image upload if base64 data is provided
+    if (updates.image && updates.image.startsWith('data:')) {
+      // For now, save base64 directly (can be changed to upload to storage later)
+      imageToSave = updates.image
+    }
+    
+    // Filter and map fields to match database schema
+    const dbUpdates = {
+      category: updates.category,
+      name: updates.name,
+      brand: updates.brand,
+      model: updates.model,
+      weight: updates.weight,
+      price: updates.price,
+      year: updates.year,
+      rating: updates.rating,
+      comment: updates.comment,
+      image_path: imageToSave, // Map image to image_path
+      storage_id: updates.storageId !== undefined ? (updates.storageId || null) : undefined,
+      order_index: updates.order_index,
+      updated_at: new Date().toISOString()
+    }
+    
+    // Remove undefined fields
+    Object.keys(dbUpdates).forEach(key => {
+      if (dbUpdates[key] === undefined) {
+        delete dbUpdates[key]
+      }
+    })
+    
+    const { data, error } = await supabase
+      .from('gear_items')
+      .update(dbUpdates)
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+      .select()
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async deleteGearItem(id) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { error } = await supabase
+      .from('gear_items')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+    
+    if (error) throw error
+  },
+  
+  // ==================== GEAR CATALOG (Community Suggestions) ====================
+  
+  async searchGearCatalog(query, brand = null, limit = 10) {
+    const { data, error } = await supabase
+      .rpc('search_gear_catalog', {
+        search_query: query || '',
+        search_brand: brand || '',
+        result_limit: limit
+      })
+    
+    if (error) {
+      console.error('Gear catalog search error:', error)
+      return []
+    }
+    return data || []
+  },
+  
+  async getGearSuggestionsByBrand(brand, limit = 20) {
+    if (!brand) return []
+    
+    const { data, error } = await supabase
+      .from('gear_catalog')
+      .select('*')
+      .ilike('brand', `%${brand}%`)
+      .order('usage_count', { ascending: false })
+      .limit(limit)
+    
+    if (error) {
+      console.error('Gear suggestions error:', error)
+      return []
+    }
+    return data || []
+  },
+  
+  async getModelSuggestions(brand, modelQuery = '', limit = 10) {
+    if (!brand) return []
+    
+    let query = supabase
+      .from('gear_catalog')
+      .select('model, name, avg_weight, avg_price, avg_rating, usage_count')
+      .ilike('brand', brand)
+      .order('usage_count', { ascending: false })
+      .limit(limit)
+    
+    if (modelQuery) {
+      query = query.ilike('model', `%${modelQuery}%`)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('Model suggestions error:', error)
+      return []
+    }
+    return data || []
+  },
+  
+  // ==================== CHECKLISTS ====================
+  
+  async getAllChecklists() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('checklists')
+      .select('*')
+      .eq('user_id', this.currentUser.id)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  },
+  
+  async createChecklist(checklist) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('checklists')
+      .insert([{
+        id: checklist.id,
+        user_id: this.currentUser.id,
+        name: checklist.name,
+        activities: checklist.tags || [], // Use activities column for tags
+        items: checklist.items || [],
+        start_date: checklist.startDate || null,
+        end_date: checklist.endDate || null,
+        created_at: checklist.created ? new Date(checklist.created).toISOString() : new Date().toISOString()
+      }])
+      .select()
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async updateChecklist(id, updates) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Map frontend fields to database fields and filter out read-only fields
+    // Support both camelCase (from form) and snake_case (from database)
+    const updateData = {
+      name: updates.name,
+      activities: updates.tags, // Use activities column for tags
+      items: updates.items,
+      start_date: updates.startDate || updates.start_date || null,
+      end_date: updates.endDate || updates.end_date || null,
+      updated_at: new Date().toISOString()
+    }
+    
+    const { data, error } = await supabase
+      .from('checklists')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+      .select()
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async deleteChecklist(id) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { error } = await supabase
+      .from('checklists')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+    
+    if (error) throw error
+  },
+  
+  // ==================== CATEGORY ORDER ====================
+  
+  async getCategoryOrder() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('category_order')
+      .select('categories, sort_modes')
+      .eq('user_id', this.currentUser.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    
+    if (error) throw error
+    
+    if (!data) return null
+    
+    return {
+      categories: data.categories || [],
+      sort_modes: data.sort_modes || {}
+    }
+  },
+  
+  async saveCategoryOrder(categoryData, sortModes = {}) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // First, delete existing category order for this user
+    await supabase
+      .from('category_order')
+      .delete()
+      .eq('user_id', this.currentUser.id)
+    
+    // Then insert the new data
+    const { data, error } = await supabase
+      .from('category_order')
+      .insert({
+        user_id: this.currentUser.id,
+        categories: categoryData,
+        sort_modes: sortModes,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  },
+
+  async saveItemsOrder(itemsOrder) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Group items by category and assign order_index within each category
+    const categorizedItems = {}
+    itemsOrder.forEach(item => {
+      const category = item.category || 'uncategorized'
+      if (!categorizedItems[category]) {
+        categorizedItems[category] = []
+      }
+      categorizedItems[category].push(item)
+    })
+    
+    // Update order_index for items within each category
+    for (const category of Object.keys(categorizedItems)) {
+      const categoryItems = categorizedItems[category]
+      for (let i = 0; i < categoryItems.length; i++) {
+        await supabase
+          .from('gear_items')
+          .update({ order_index: i })
+          .eq('id', categoryItems[i].id)
+          .eq('user_id', this.currentUser.id)
+      }
+    }
+    
+    return true
+  },
+
+  // Backwards-compatible wrapper: some parts of the app call `saveItems`
+  // Provide a simple alias that calls `saveItemsOrder` so older call sites continue to work.
+  async saveItems(items) {
+    return this.saveItemsOrder(items)
+  },
+  
+  // ==================== STORAGE ====================
+  
+  async uploadPhoto(itemId, photoDataUrl) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Convert base64 to blob
+    const response = await fetch(photoDataUrl)
+    const blob = await response.blob()
+    
+    // Generate path: users/{userId}/{itemId}.jpg
+    const filePath = `${this.currentUser.id}/${itemId}.jpg`
+    
+    const { data, error } = await supabase.storage
+      .from('gear-photos')
+      .upload(filePath, blob, {
+        contentType: 'image/jpeg',
+        upsert: true
+      })
+    
+    if (error) throw error
+    return filePath
+  },
+  
+  // Cache for signed URLs (valid for 1 hour, cache for 50 minutes)
+  _urlCache: new Map(),
+  _urlCacheExpiry: 50 * 60 * 1000, // 50 minutes in ms
+  
+  async getPhotoUrl(imagePath) {
+    if (!imagePath) return null;
+
+    // Base64 image: return as is
+    if (typeof imagePath === 'string' && imagePath.startsWith('data:')) {
+      return imagePath;
+    }
+
+    // Full URL: return as is
+    if (typeof imagePath === 'string' && imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Check cache first
+    const cached = this._urlCache.get(imagePath)
+    if (cached && Date.now() < cached.expiry) {
+      return cached.url
+    }
+
+    // Try to get signed URL for storage file
+    try {
+      const { data, error } = await supabase.storage
+        .from('gear-photos')
+        .createSignedUrl(imagePath, 3600);
+      if (error) {
+        console.error('Error getting photo URL:', error, 'imagePath:', imagePath);
+        return null;
+      }
+      
+      // Cache the URL
+      this._urlCache.set(imagePath, {
+        url: data.signedUrl,
+        expiry: Date.now() + this._urlCacheExpiry
+      })
+      
+      return data.signedUrl;
+    } catch (err) {
+      console.error('Exception in getPhotoUrl:', err, 'imagePath:', imagePath);
+      return null;
+    }
+  },
+  
+  // Batch get photo URLs for multiple items
+  async getPhotoUrlsBatch(imagePaths) {
+    const results = {}
+    const pathsToFetch = []
+    
+    // Check cache first
+    for (const path of imagePaths) {
+      if (!path) continue
+      
+      if (path.startsWith('data:') || path.startsWith('http')) {
+        results[path] = path
+        continue
+      }
+      
+      const cached = this._urlCache.get(path)
+      if (cached && Date.now() < cached.expiry) {
+        results[path] = cached.url
+      } else {
+        pathsToFetch.push(path)
+      }
+    }
+    
+    // Fetch remaining URLs in parallel (limited concurrency)
+    if (pathsToFetch.length > 0) {
+      const BATCH_SIZE = 10
+      for (let i = 0; i < pathsToFetch.length; i += BATCH_SIZE) {
+        const batch = pathsToFetch.slice(i, i + BATCH_SIZE)
+        const batchResults = await Promise.all(
+          batch.map(async (path) => {
+            try {
+              const { data, error } = await supabase.storage
+                .from('gear-photos')
+                .createSignedUrl(path, 3600)
+              if (error) return { path, url: null }
+              
+              this._urlCache.set(path, {
+                url: data.signedUrl,
+                expiry: Date.now() + this._urlCacheExpiry
+              })
+              
+              return { path, url: data.signedUrl }
+            } catch {
+              return { path, url: null }
+            }
+          })
+        )
+        
+        for (const { path, url } of batchResults) {
+          results[path] = url
+        }
+      }
+    }
+    
+    return results
+  },
+  
+  async deletePhoto(imagePath) {
+    if (!this.currentUser || !imagePath) return
+    
+    const { error } = await supabase.storage
+      .from('gear-photos')
+      .remove([imagePath])
+    
+    if (error) throw error
+  },
+  
+  // ==================== MIGRATION ====================
+  
+  async migrateFromLocalStorage(localData = null) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // If no localData provided, read from localStorage
+    if (!localData) {
+      const itemsData = localStorage.getItem('allmygear.items')
+      const checklistsData = localStorage.getItem('allmygear.checklists')
+      const categoryOrderData = localStorage.getItem('allmygear.categoryOrder')
+      
+      localData = {
+        items: itemsData ? JSON.parse(itemsData) : [],
+        checklists: checklistsData ? JSON.parse(checklistsData) : [],
+        categoryOrder: categoryOrderData ? JSON.parse(categoryOrderData) : []
+      }
+    }
+    
+    const results = {
+      items: 0,
+      checklists: 0,
+      photos: 0,
+      errors: []
+    }
+    
+    try {
+      // Migrate gear items
+      if (localData.items && localData.items.length > 0) {
+        for (const item of localData.items) {
+          try {
+            // Generate new UUID for Supabase
+            const newId = crypto.randomUUID()
+            
+            // Upload photo if exists
+            let imagePath = null
+            if (item.image) {
+              imagePath = await this.uploadPhoto(newId, item.image)
+              results.photos++
+            }
+            
+            // Create item in database with new UUID
+            await this.createGearItem({
+              ...item,
+              id: newId, // Use new UUID instead of localStorage ID
+              image_path: imagePath,
+              image: undefined // Don't store base64 in DB
+            })
+            results.items++
+          } catch (err) {
+            console.error('Error migrating item:', item.name, err)
+            results.errors.push(`Item ${item.name}: ${err.message}`)
+          }
+        }
+      }
+      
+      // Migrate checklists
+      if (localData.checklists && localData.checklists.length > 0) {
+        for (const checklist of localData.checklists) {
+          try {
+            // Generate new UUID for checklist
+            const newId = crypto.randomUUID()
+            
+            await this.createChecklist({
+              ...checklist,
+              id: newId // Use new UUID instead of localStorage ID
+            })
+            results.checklists++
+          } catch (err) {
+            console.error('Error migrating checklist:', checklist.name, err)
+            results.errors.push(`Checklist ${checklist.name}: ${err.message}`)
+          }
+        }
+      }
+      
+      // Migrate category order
+      if (localData.categoryOrder) {
+        try {
+          await this.saveCategoryOrder(localData.categoryOrder)
+        } catch (err) {
+          // Silently continue migration
+        }
+      }
+      
+      // Clear localStorage after successful migration
+      localStorage.removeItem('allmygear.items')
+      localStorage.removeItem('allmygear.checklists')
+      localStorage.removeItem('allmygear.categoryOrder')
+      
+      return results
+      
+    } catch (err) {
+      console.error('Migration failed:', err)
+      throw err
+    }
+  },
+  
+  // ==================== REALTIME SYNC ====================
+  
+  subscribeToGearItems(callback) {
+    if (!this.currentUser) return null
+    
+    return supabase
+      .channel('gear_items_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'gear_items',
+          filter: `user_id=eq.${this.currentUser.id}`
+        },
+        callback
+      )
+      .subscribe()
+  },
+  
+  subscribeToChecklists(callback) {
+    if (!this.currentUser) return null
+    
+    return supabase
+      .channel('checklists_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'checklists',
+          filter: `user_id=eq.${this.currentUser.id}`
+        },
+        callback
+      )
+      .subscribe()
+  },
+
+  // ==================== CLEANUP ====================
+  
+  async removeDuplicateGearItems() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Get all items for current user
+    const { data: items, error } = await supabase
+      .from('gear_items')
+      .select('*')
+      .eq('user_id', this.currentUser.id)
+      .order('created_at', { ascending: true }) // Keep oldest
+    
+    if (error) throw error
+    
+    // Group by name + brand + model to find duplicates
+    const seen = new Map()
+    const duplicatesToDelete = []
+    
+    items.forEach(item => {
+      const key = `${item.name}-${item.brand}-${item.model}`
+      if (seen.has(key)) {
+        // This is a duplicate, mark for deletion
+        duplicatesToDelete.push(item.id)
+      } else {
+        // First occurrence, keep it
+        seen.set(key, item.id)
+      }
+    })
+    
+    // Delete duplicates
+    if (duplicatesToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('gear_items')
+        .delete()
+        .in('id', duplicatesToDelete)
+      
+      if (deleteError) throw deleteError
+    }
+    
+    return duplicatesToDelete.length
+  },
+  
+  async removeDuplicateChecklists() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Get all checklists for current user
+    const { data: checklists, error } = await supabase
+      .from('checklists')
+      .select('*')
+      .eq('user_id', this.currentUser.id)
+      .order('created_at', { ascending: true }) // Keep oldest
+    
+    if (error) throw error
+    
+    // Group by name to find duplicates
+    const seen = new Map()
+    const duplicatesToDelete = []
+    
+    checklists.forEach(checklist => {
+      const key = checklist.name
+      if (seen.has(key)) {
+        // This is a duplicate, mark for deletion
+        duplicatesToDelete.push(checklist.id)
+      } else {
+        // First occurrence, keep it
+        seen.set(key, checklist.id)
+      }
+    })
+    
+    // Delete duplicates
+    if (duplicatesToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('checklists')
+        .delete()
+        .in('id', duplicatesToDelete)
+      
+      if (deleteError) throw deleteError
+    }
+    
+    return duplicatesToDelete.length
+  },
+
+  // ==================== DELETE ALL DATA ====================
+  
+  async deleteAllUserData() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const userId = this.currentUser.id
+    
+    try {
+      // Delete all gear items
+      const { error: itemsError } = await supabase
+        .from('gear_items')
+        .delete()
+        .eq('user_id', userId)
+      
+      if (itemsError) throw itemsError
+      
+      // Delete all checklists
+      const { error: checklistsError } = await supabase
+        .from('checklists')
+        .delete()
+        .eq('user_id', userId)
+      
+      if (checklistsError) throw checklistsError
+      
+      // Delete category order
+      const { error: categoryError } = await supabase
+        .from('category_order')
+        .delete()
+        .eq('user_id', userId)
+      
+      if (categoryError) throw categoryError
+      
+      return true
+    } catch (error) {
+      console.error('Error deleting all user data:', error)
+      throw error
+    }
+  },
+
+  // Remove legacy 'kitchen' category everywhere: LocalStorage + Supabase DB
+  async removeKitchenCategoryEverywhere() {
+    if (!this.currentUser) throw new Error('Not authenticated')
+
+    try {
+      // 1) Update category_order record in DB (if present)
+      const existing = await this.getCategoryOrder()
+      if (existing && Array.isArray(existing.categories)) {
+        const filtered = existing.categories.filter(c => typeof c === 'string' && c.trim().toLowerCase() !== 'kitchen')
+        if (filtered.length !== existing.categories.length) {
+          await this.saveCategoryOrder(filtered, existing.sort_modes || {})
+        }
+      }
+
+      // 2) Update gear_items rows: set category 'kitchen' -> 'Cooking'
+      const { data: updateData, error: updateError } = await supabase
+        .from('gear_items')
+        .update({ category: 'Cooking' })
+        .eq('user_id', this.currentUser.id)
+        .eq('category', 'kitchen')
+
+      if (updateError) {
+        console.error('Error updating gear_items categories:', updateError)
+      }
+
+      // 3) Ensure localStorage (client-side) is cleaned as well
+      try {
+        const raw = localStorage.getItem('allmygear.categoryOrder')
+        if (raw) {
+          const arr = JSON.parse(raw)
+          if (Array.isArray(arr)) {
+            const filteredLocal = arr.filter(c => typeof c === 'string' && c.trim().toLowerCase() !== 'kitchen')
+            if (filteredLocal.length !== arr.length) {
+              localStorage.setItem('allmygear.categoryOrder', JSON.stringify(filteredLocal))
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Could not clean localStorage categoryOrder:', e)
+      }
+
+      return true
+    } catch (err) {
+      console.error('removeKitchenCategoryEverywhere error:', err)
+      throw err
+    }
+  },
+
+  // ==================== SHARING ====================
+  
+  // Create a share link for a gear item
+  async createShareLink(itemId) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Generate unique share code
+    const shareCode = this.generateShareCode()
+    
+    // Get the item data first
+    const { data: item, error: itemError } = await supabase
+      .from('gear_items')
+      .select('*')
+      .eq('id', itemId)
+      .eq('user_id', this.currentUser.id)
+      .single()
+    
+    if (itemError) throw itemError
+    if (!item) throw new Error('Item not found')
+    
+    // Create share record
+    const { data, error } = await supabase
+      .from('shared_items')
+      .insert([{
+        share_code: shareCode,
+        item_id: itemId,
+        owner_id: this.currentUser.id,
+        item_data: {
+          category: item.category,
+          name: item.name,
+          brand: item.brand,
+          model: item.model,
+          weight: item.weight,
+          price: item.price,
+          year: item.year,
+          rating: item.rating,
+          image_path: item.image_path
+        },
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+      }])
+      .select()
+      .single()
+    
+    if (error) throw error
+    return { shareCode, shareUrl: `${window.location.origin}${window.location.pathname}?share=${shareCode}` }
+  },
+  
+  // Get shared item by code (no auth required)
+  async getSharedItem(shareCode) {
+    const { data, error } = await supabase
+      .from('shared_items')
+      .select('*')
+      .eq('share_code', shareCode)
+      .single()
+    
+    if (error) throw error
+    if (!data) throw new Error('Shared item not found')
+    
+    // Check if expired
+    if (new Date(data.expires_at) < new Date()) {
+      throw new Error('Share link has expired')
+    }
+    
+    // Get image URL if exists
+    let imageUrl = null
+    if (data.item_data.image_path) {
+      imageUrl = await this.getPhotoUrl(data.item_data.image_path)
+    }
+    
+    return {
+      ...data.item_data,
+      image: imageUrl,
+      shareCode: data.share_code,
+      ownerId: data.owner_id
+    }
+  },
+  
+  // Save shared item to user's collection
+  async saveSharedItem(shareCode) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Get the shared item
+    const sharedItem = await this.getSharedItem(shareCode)
+    
+    // Check if user is trying to save their own item
+    if (sharedItem.ownerId === this.currentUser.id) {
+      throw new Error('You already own this item')
+    }
+    
+    // Create new item with copied data
+    const newItem = {
+      id: crypto.randomUUID(),
+      category: sharedItem.category,
+      name: sharedItem.name,
+      brand: sharedItem.brand,
+      model: sharedItem.model,
+      weight: sharedItem.weight,
+      price: sharedItem.price,
+      year: sharedItem.year,
+      rating: sharedItem.rating,
+      image: sharedItem.image_path || null, // Will be copied as image_path
+      created: Date.now()
+    }
+    
+    await this.createGearItem(newItem)
+    return newItem
+  },
+  
+  // Generate random share code
+  generateShareCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    let code = ''
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return code
+  },
+  
+  // ==================== STORAGES ====================
+  
+  async getAllStorages() {
+    if (!this.currentUser) return []
+    
+    const { data, error } = await supabase
+      .from('storages')
+      .select('*')
+      .eq('user_id', this.currentUser.id)
+      .order('name', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  },
+  
+  async createStorage(name) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('storages')
+      .insert({
+        user_id: this.currentUser.id,
+        name: name.trim()
+      })
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async updateStorage(id, name) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase
+      .from('storages')
+      .update({
+        name: name.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+  
+  async deleteStorage(id) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    const { error } = await supabase
+      .from('storages')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', this.currentUser.id)
+    
+    if (error) throw error
+  },
+
+  // ==================== CHECKLIST SHARING ====================
+  
+  // Create a share link for a checklist
+  async createChecklistShare(checklistId) {
+    if (!this.currentUser) throw new Error('Not authenticated')
+    
+    // Generate unique share code
+    const shareCode = this.generateShareCode()
+    
+    // Get the checklist data with all items (items are stored as JSON array in checklist.items)
+    const { data: checklist, error: checklistError } = await supabase
+      .from('checklists')
+      .select('*')
+      .eq('id', checklistId)
+      .eq('user_id', this.currentUser.id)
+      .single()
+    
+    if (checklistError) throw checklistError
+    if (!checklist) throw new Error('Checklist not found')
+    
+    // Prepare checklist data - items are already in checklist.items as JSON
+    const checklistData = {
+      name: checklist.name,
+      created_at: checklist.created_at,
+      items: checklist.items || []
+    }
+    
+    // Load images for items if they have image_path
+    if (checklistData.items && checklistData.items.length > 0) {
+      for (const item of checklistData.items) {
+        if (item.image_path) {
+          // Store image URL in item_data for sharing
+          try {
+            item.image = await this.getPhotoUrl(item.image_path)
+          } catch (err) {
+            console.warn('Failed to load image for item:', item.id, err)
+          }
+        }
+      }
+    }
+    
+    // Create share record (reusing shared_items table with checklist_id field)
+    const { data, error } = await supabase
+      .from('shared_items')
+      .insert([{
+        share_code: shareCode,
+        checklist_id: checklistId,
+        owner_id: this.currentUser.id,
+        item_data: checklistData,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+      }])
+      .select()
+      .single()
+    
+    if (error) throw error
+    return { 
+      shareCode, 
+      shareUrl: `${window.location.origin}${window.location.pathname}?checklist=${shareCode}` 
+    }
+  },
+  
+  // Get shared checklist by code (no auth required)
+  async getSharedChecklist(shareCode) {
+    const { data, error } = await supabase
+      .from('shared_items')
+      .select('*')
+      .eq('share_code', shareCode)
+      .single()
+    
+    if (error) throw error
+    if (!data) throw new Error('Shared checklist not found')
+    
+    // Check if expired
+    if (new Date(data.expires_at) < new Date()) {
+      throw new Error('Share link has expired')
+    }
+    
+    // Load images for items
+    const checklistData = data.item_data
+    if (checklistData.items) {
+      for (const item of checklistData.items) {
+        if (item.image_path) {
+          item.image = await this.getPhotoUrl(item.image_path)
+        }
+      }
+    }
+    
+    return {
+      ...checklistData,
+      shareCode: data.share_code,
+      ownerId: data.owner_id
+    }
+  }
+}
+
