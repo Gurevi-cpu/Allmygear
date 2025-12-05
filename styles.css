@@ -44,11 +44,61 @@ body.checklists-mode {
 *{box-sizing:border-box}
 .body-font{font-family:var(--font-body)}
 body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-primary-1) 0%, var(--bg-primary-2) 20%, var(--bg-primary-1) 80%, var(--bg-primary-3) 100%); color:var(--text); margin:0; padding:0; min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
-.topbar{padding:24px 20px 12px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:20px; max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px}
-.header-left{grid-column:1;display:flex;align-items:center;gap:12px;justify-self:start;flex-wrap:nowrap;padding:6px 0}
-.add-label{font-size:15px;color:#6e7a69;font-weight:500;white-space:nowrap;letter-spacing:0.3px;margin-right:8px}
-.header-center{grid-column:2;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;position:relative;justify-self:center;min-width:280px;max-width:280px;margin-top:-2px}
-.header-right{grid-column:3;display:flex;align-items:center;gap:16px;justify-self:end}
+
+/* Header - responsive structure that adapts to zoom */
+.topbar{
+  padding:24px 32px 12px; 
+  max-width:1200px; 
+  margin:0 auto; 
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-rows:auto;
+  align-items:center;
+  gap:12px;
+  min-height:70px;
+}
+
+.header-left{
+  grid-column:1;
+  grid-row:1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 0;
+  align-self:center;
+}
+
+.add-label{
+  font-size:15px;
+  color:#6e7a69;
+  font-weight:500;
+  white-space:nowrap;
+  letter-spacing:0.3px;
+  margin-right:8px;
+}
+
+.header-center{
+  grid-column:2;
+  grid-row:1;
+  justify-self:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  max-width:280px;
+  align-self:center;
+}
+
+.header-right{
+  grid-column:3;
+  grid-row:1;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-self:end;
+  align-self:center;
+}
 .header-controls{display:flex;background:rgba(110,122,105,0.08);padding:6px 11px 5px;border-radius:6px;border:1px solid rgba(110,122,105,0.15);height:32px;align-items:center;gap:8px}
 .header-controls input[type=search]{
   background:transparent;
@@ -70,11 +120,11 @@ body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-p
 .header-controls input[type=search]::placeholder{color:rgba(110,122,105,0.5)}
 .header-controls .sort-select{background:transparent;border:none;padding:5px 6px;border-radius:0;color:#6e7a69;font-family:var(--font-body);font-size:13px;font-weight:400;cursor:pointer;border-left:1px solid rgba(110,122,105,0.2)}
 .header-controls .sort-select:focus{outline:none}
-.topbar h1{margin:0;font-size:28px;letter-spacing:1px;font-family:var(--font-heading);font-weight:600;line-height:1.1;margin-top:-1px}
-.subtitle{margin:4px 0 0;color:#ff7a3a;font-family:'Outfit', var(--font-body);font-weight:400;white-space:nowrap;flex-shrink:0}
+.topbar h1{margin:0;font-size:28px;letter-spacing:1px;font-family:var(--font-heading);font-weight:600;line-height:30px;height:30px;margin-top:-1px}
+.subtitle{margin:4px 0 0;color:#ff7a3a;font-family:'Outfit', var(--font-body);font-weight:400;font-size:14px;line-height:18px;height:18px;white-space:nowrap;flex-shrink:0}
 
 .brand{display:inline-flex;align-items:center;justify-content:center}
-.logo{width:40px;height:auto;display:block;object-fit:contain;flex-shrink:0}
+.logo{width:50px;height:50px;display:block;object-fit:contain;flex-shrink:0}
 .container{display:flex;flex-direction:column;gap:18px;padding:18px 20px 20px;max-width:1200px;margin:0 auto}
 .add-btn{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#5a6455, #6e7a69);border:1px solid rgba(110,122,105,0.3);color:#f7f8f5;font-size:20px;font-weight:400;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:all .2s ease;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;margin-top:-1px}
 .add-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.25);background:linear-gradient(135deg,#6e7a69, #7a8675);border-color:rgba(110,122,105,0.5)}
@@ -1218,7 +1268,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .footer-logo:hover{opacity:0.9}
 
 /* Tabs */
-.tabs{display:flex;align-items:center;gap:4px;padding:0 32px;max-width:1200px;margin:14px auto 2px;background:transparent}
+.tabs{display:flex;align-items:center;gap:4px;padding:0 32px;max-width:1200px;margin:14px auto 2px;background:transparent;position:relative;z-index:15}
 .tab{padding:16px 40px 12px;border:none;background:transparent;color:#6e7a69;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer;border-radius:10px;transition:all 0.2s ease;letter-spacing:0.5px;position:relative;flex:1;text-align:left}
 .tab:hover{background:rgba(110,122,105,0.05);color:#5a6455}
 .tab.active{background:transparent}
@@ -1412,14 +1462,35 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 
 @media (max-width:900px){
   .container{padding:14px}
-  .topbar{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:12px;padding-left:20px;padding-right:20px;position:relative}
-  .header-left{display:none}
+  .topbar{
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto;
+    gap:8px;
+    padding:16px 20px 12px;
+    align-items:center;
+  }
+  .header-left{
+    grid-column:1;
+    grid-row:2;
+    justify-self:start;
+    align-self:center;
+  }
   .add-label{display:none}
-  .header-center{grid-row:1;min-width:280px;max-width:280px;justify-self:center}
-  .header-right{grid-row:1;grid-column:1;justify-self:end;position:absolute;right:20px;top:24px;z-index:10}
-  .logo{width:30px}
+  .header-center{
+    grid-row:1;
+    grid-column:1 / -1;
+    justify-self:center;
+  }
+  .header-right{
+    grid-row:2;
+    grid-column:2;
+    justify-self:end;
+    align-self:center;
+  }
+  .logo{width:30px;height:30px}
+  .subtitle{font-size:12px;line-height:16px;height:16px}
   .header-controls{max-width:100%}
-  .summary{grid-column:1;grid-row:2;justify-self:center;gap:8px;font-size:12px;padding:5px 10px}
+  .summary{gap:8px;font-size:12px;padding:5px 10px}
   .summary{flex-wrap:wrap;justify-content:center}
 }
 
