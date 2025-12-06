@@ -5425,10 +5425,14 @@
         SupabaseService.getAllGearItems(),
         SupabaseService.getAllChecklists(),
         SupabaseService.getCategoryOrder(),
-        SupabaseService.getAllStorages().catch(err => {
-          console.warn('Error loading storages:', err)
-          return []
-        })
+        (async () => {
+          try {
+            return await SupabaseService.getAllStorages()
+          } catch (err) {
+            console.warn('Error loading storages:', err)
+            return []
+          }
+        })()
       ])
       
       // Try to get cached photo URLs first
