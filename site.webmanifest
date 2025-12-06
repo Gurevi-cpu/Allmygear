@@ -4,11 +4,6 @@
   "description": "Create handy gear lists for your trips",
   "icons": [
     {
-      "src": "AMG_icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
       "src": "apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
