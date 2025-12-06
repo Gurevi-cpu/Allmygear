@@ -5420,8 +5420,16 @@
       checklists = []
       categoryOrder = []
       
-      // Load gear items
-      const supabaseItems = await SupabaseService.getAllGearItems()
+      // Load ALL data in parallel
+      const [supabaseItems, supabaseChecklists, orderData, loadedStorages] = await Promise.all([
+        SupabaseService.getAllGearItems(),
+        SupabaseService.getAllChecklists(),
+        SupabaseService.getCategoryOrder(),
+        SupabaseService.getAllStorages().catch(err => {
+          console.warn('Error loading storages:', err)
+          return []
+        })
+      ])
       
       // Try to get cached photo URLs first
       const cacheKey = 'allmygear.photoUrlsCache'
@@ -5485,8 +5493,7 @@
         created: item.created_at
       }))
       
-      // Load checklists
-      const supabaseChecklists = await SupabaseService.getAllChecklists()
+      // Map checklists
       checklists = supabaseChecklists.map(cl => ({
         id: cl.id,
         name: cl.name,
@@ -5500,9 +5507,15 @@
         created: cl.created_at
       }))
       
-      // Load category order
-      const orderData = await SupabaseService.getCategoryOrder()
+      // Set storages
+      storages = loadedStorages
+      
+      // Process category order
       const allPossibleCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+      
+      if (orderData && orderData.categories) {
+        // Merge saved order with new categories
+        const savedCategories = orderData.categories.filter(cat => allPossibleCategories.includes(cat))
       
       if (orderData && orderData.categories) {
         // Merge saved order with new categories
@@ -5512,14 +5525,6 @@
         categorySortMode = orderData.sort_modes || {}
       } else {
         loadCategoryOrder() // Use defaults
-      }
-      
-      // Load storages
-      try {
-        storages = await SupabaseService.getAllStorages()
-      } catch (err) {
-        console.warn('Error loading storages:', err)
-        storages = []
       }
       
       // Auto-organize categories: non-empty categories first, empty categories last
