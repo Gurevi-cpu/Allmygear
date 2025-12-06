@@ -5420,20 +5420,8 @@
       checklists = []
       categoryOrder = []
       
-      // Load ALL data in parallel
-      const [supabaseItems, supabaseChecklists, orderData, loadedStorages] = await Promise.all([
-        SupabaseService.getAllGearItems(),
-        SupabaseService.getAllChecklists(),
-        SupabaseService.getCategoryOrder(),
-        (async () => {
-          try {
-            return await SupabaseService.getAllStorages()
-          } catch (err) {
-            console.warn('Error loading storages:', err)
-            return []
-          }
-        })()
-      ])
+      // Load gear items
+      const supabaseItems = await SupabaseService.getAllGearItems()
       
       // Try to get cached photo URLs first
       const cacheKey = 'allmygear.photoUrlsCache'
@@ -5497,7 +5485,8 @@
         created: item.created_at
       }))
       
-      // Map checklists
+      // Load checklists
+      const supabaseChecklists = await SupabaseService.getAllChecklists()
       checklists = supabaseChecklists.map(cl => ({
         id: cl.id,
         name: cl.name,
@@ -5511,15 +5500,9 @@
         created: cl.created_at
       }))
       
-      // Set storages
-      storages = loadedStorages
-      
-      // Process category order
+      // Load category order
+      const orderData = await SupabaseService.getCategoryOrder()
       const allPossibleCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
-      
-      if (orderData && orderData.categories) {
-        // Merge saved order with new categories
-        const savedCategories = orderData.categories.filter(cat => allPossibleCategories.includes(cat))
       
       if (orderData && orderData.categories) {
         // Merge saved order with new categories
@@ -5529,6 +5512,14 @@
         categorySortMode = orderData.sort_modes || {}
       } else {
         loadCategoryOrder() // Use defaults
+      }
+      
+      // Load storages
+      try {
+        storages = await SupabaseService.getAllStorages()
+      } catch (err) {
+        console.warn('Error loading storages:', err)
+        storages = []
       }
       
       // Auto-organize categories: non-empty categories first, empty categories last
@@ -6421,4 +6412,46 @@
   // Override save/load functions to use Supabase when authenticated
   const originalSave = window.save
   const originalLoad = window.load
+  
+  // Handle image loading errors - refresh expired URLs
+  async function handleImageError(img) {
+    const itemId = img.closest('[data-id]')?.dataset.id
+    if (!itemId) return
+    
+    const item = items.find(it => it.id === itemId)
+    if (!item || !item.image_path) return
+    
+    try {
+      // Get fresh URL for this image
+      const freshUrl = await SupabaseService.getPhotoUrl(item.image_path)
+      if (freshUrl) {
+        // Update item
+        item.image = freshUrl
+        
+        // Update cache
+        const cacheKey = 'allmygear.photoUrlsCache'
+        try {
+          const cached = localStorage.getItem(cacheKey)
+          const photoUrls = cached ? JSON.parse(cached) : {}
+          photoUrls[item.image_path] = freshUrl
+          localStorage.setItem(cacheKey, JSON.stringify(photoUrls))
+          localStorage.setItem('allmygear.photoUrlsCacheTime', Date.now().toString())
+        } catch (e) {
+          console.warn('Failed to update photo cache:', e)
+        }
+        
+        // Update image src
+        img.src = freshUrl
+      }
+    } catch (err) {
+      console.error('Failed to refresh image URL:', err)
+    }
+  }
+  
+  // Add error handlers to all images
+  document.addEventListener('error', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.classList.contains('thumb')) {
+      handleImageError(e.target)
+    }
+  }, true)
 })()
