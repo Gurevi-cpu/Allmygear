@@ -124,7 +124,7 @@ body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-p
 .subtitle{margin:4px 0 0;color:#ff7a3a;font-family:'Outfit', var(--font-body);font-weight:400;font-size:14px;line-height:18px;height:18px;white-space:nowrap;flex-shrink:0}
 
 .brand{display:inline-flex;align-items:center;justify-content:center}
-.logo{width:50px;height:50px;display:block;object-fit:contain;flex-shrink:0}
+.logo{width:60px;height:60px;display:block;object-fit:contain;flex-shrink:0}
 .container{display:flex;flex-direction:column;gap:18px;padding:18px 20px 20px;max-width:1200px;margin:0 auto}
 .add-btn{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#5a6455, #6e7a69);border:1px solid rgba(110,122,105,0.3);color:#f7f8f5;font-size:20px;font-weight:400;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:all .2s ease;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;margin-top:-1px}
 .add-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.25);background:linear-gradient(135deg,#6e7a69, #7a8675);border-color:rgba(110,122,105,0.5)}
