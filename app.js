@@ -3030,7 +3030,7 @@
       <div class="modal-content alert-modal-content" style="max-width:380px;">
         <div class="modal-header">
           <div class="modal-title-section">
-            <img src="AMG_icon.svg" alt="AllMyGear" style="height:100%;max-height:62px;margin-right:12px;">
+            <img src="AMG_icon_white.svg" alt="AllMyGear" style="height:100%;max-height:62px;margin-right:12px;">
             <h2>${escapeHtml(title)}</h2>
           </div>
           <button class="modal-close-btn alert-close" aria-label="Close">
@@ -3357,7 +3357,7 @@
     
     if (!isAuthenticated) {
       // Redirect to auth for non-authenticated users
-      showCustomAlert('Sign in to save your gear data and access it from any device.', 'Welcome to AllMyGear.net')
+      showCustomAlert('Sign in to save your gear data and access it from any device.', 'Welcome to AllMyGear')
       return
     }
     // If authenticated, data will be loaded in initAuth -> handleAuthSuccess -> loadFromSupabase
@@ -4005,6 +4005,9 @@
     const imgHtml = item.image ? `<img class="thumb" src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''
     const largeImgHtml = item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">` : 'No photo'
     
+    const storageName = item.storageId ? storages.find(s => s.id === item.storageId)?.name : null
+    const storageBadgeHtml = storageName ? `<span class="storage-badge-large">${escapeHtml(storageName)}</span>` : ''
+    
     el.innerHTML = `
       <div class="card-compact-content">
         ${imgHtml}
@@ -4019,6 +4022,7 @@
             </div>
           </div>
         </div>
+        ${storageBadgeHtml}
         <div class="weight-badge">${formatWeight(item.weight)}</div>
         <div class="card-checkbox-right">
           <button class="btn icon remove-from-checklist" data-item-id="${item.id}" title="Remove from checklist">
@@ -5419,15 +5423,49 @@
       // Load gear items
       const supabaseItems = await SupabaseService.getAllGearItems()
       
-      // Collect all image paths for batch URL fetching
+      // Try to get cached photo URLs first
+      const cacheKey = 'allmygear.photoUrlsCache'
+      const cacheTimeKey = 'allmygear.photoUrlsCacheTime'
+      let photoUrls = {}
+      let needsRefresh = false
+      
+      try {
+        const cached = localStorage.getItem(cacheKey)
+        const cacheTime = localStorage.getItem(cacheTimeKey)
+        const now = Date.now()
+        // Cache valid for 50 minutes (Supabase URLs expire in 1 hour)
+        if (cached && cacheTime && (now - parseInt(cacheTime)) < 50 * 60 * 1000) {
+          photoUrls = JSON.parse(cached)
+        } else {
+          needsRefresh = true
+        }
+      } catch (e) {
+        needsRefresh = true
+      }
+      
+      // Collect all image paths
       const imagePaths = supabaseItems
         .filter(item => item.image_path)
         .map(item => item.image_path)
       
-      // Batch fetch all photo URLs at once
-      const photoUrls = imagePaths.length > 0 
-        ? await SupabaseService.getPhotoUrlsBatch(imagePaths)
-        : {}
+      // Check if we need to fetch new URLs (cache miss or expired)
+      if (needsRefresh || imagePaths.some(path => !photoUrls[path])) {
+        // Batch fetch all photo URLs
+        const freshUrls = imagePaths.length > 0 
+          ? await SupabaseService.getPhotoUrlsBatch(imagePaths)
+          : {}
+        
+        // Merge with existing cache
+        photoUrls = { ...photoUrls, ...freshUrls }
+        
+        // Save to cache
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(photoUrls))
+          localStorage.setItem(cacheTimeKey, Date.now().toString())
+        } catch (e) {
+          console.warn('Failed to cache photo URLs:', e)
+        }
+      }
       
       // Map items with cached URLs (no await needed)
       items = supabaseItems.map((item) => ({
