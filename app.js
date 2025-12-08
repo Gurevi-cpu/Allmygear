@@ -5454,15 +5454,32 @@
           ? await SupabaseService.getPhotoUrlsBatch(imagePaths)
           : {}
         
-        // Merge with existing cache
-        photoUrls = { ...photoUrls, ...freshUrls }
+        // Only keep URLs for current items (remove old/unused entries)
+        const currentPaths = new Set(imagePaths)
+        photoUrls = Object.fromEntries(
+          Object.entries({ ...photoUrls, ...freshUrls })
+            .filter(([path]) => currentPaths.has(path))
+        )
         
-        // Save to cache
+        // Save to cache with error handling
         try {
           localStorage.setItem(cacheKey, JSON.stringify(photoUrls))
           localStorage.setItem(cacheTimeKey, Date.now().toString())
         } catch (e) {
-          console.warn('Failed to cache photo URLs:', e)
+          if (e.name === 'QuotaExceededError') {
+            // Clear old cache and try again with fresh URLs only
+            console.warn('localStorage quota exceeded, clearing old photo cache')
+            try {
+              localStorage.removeItem(cacheKey)
+              localStorage.removeItem(cacheTimeKey)
+              localStorage.setItem(cacheKey, JSON.stringify(freshUrls))
+              localStorage.setItem(cacheTimeKey, Date.now().toString())
+            } catch (retryError) {
+              console.error('Failed to cache photo URLs even after clearing:', retryError)
+            }
+          } else {
+            console.warn('Failed to cache photo URLs:', e)
+          }
         }
       }
       
