@@ -1239,8 +1239,8 @@ const SupabaseService = {
       }
     }
     
-    // Generate new unique token
-    const shareToken = this._generateShareCode(12)
+    // Generate new unique token (12 chars for extra security)
+    const shareToken = this.generateShareCode() + this.generateShareCode().substring(0, 4)
     
     // Create new share record
     const { data, error } = await supabase
