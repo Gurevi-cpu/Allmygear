@@ -2786,3 +2786,27 @@ body.checklists-mode {
 .storage-item-actions .btn.icon.delete-storage{background:rgba(220,38,38,0.08)}
 .storage-item-actions .btn.icon.delete-storage:hover{background:rgba(220,38,38,0.15);color:#dc2626}
 
+
+
+/* --- Site default scale reduced by 10% (desktop + mobile) ---
+   Approach:
+   - Use meta viewport initial-scale=0.9 for mobile (see index.html)
+   - Apply CSS `zoom: 0.9` on desktop where supported (Chromium, Safari)
+   - Provide a Firefox-friendly fallback using transform: scale with width adjust
+   This keeps user zooming available (we do NOT disable user scaling).
+*/
+html {
+  /* Default 10% smaller */
+  zoom: 0.9;
+}
+
+@supports not (zoom: 0.9) {
+  /* Firefox fallback */
+  body {
+    transform: scale(0.9);
+    transform-origin: 0 0;
+    /* Prevent horizontal scrollbar by compensating width */
+    width: calc(100% / 0.9);
+  }
+}
+
