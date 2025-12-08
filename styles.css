@@ -616,6 +616,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
   opacity:1;
   transform:translateY(0);
   animation:fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+  padding-right:180px;
 }
 
 .card.collapsing .card-expanded-content{
@@ -705,6 +706,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
   display:flex;
   gap:20px;
   align-items:flex-start;
+  flex-wrap:wrap;
 }
 
 .card-expanded-photo{
@@ -729,6 +731,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 
 .card-expanded-info{
   flex:1;
+  min-width:300px;
   display:flex;
   flex-direction:column;
   gap:8px;
