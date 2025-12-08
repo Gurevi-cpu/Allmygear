@@ -6557,11 +6557,16 @@
   
   async function showPublicGearCollection(gearToken) {
     try {
-      // Hide main UI
-      document.getElementById('topbar').style.display = 'none'
-      document.getElementById('sidebar').style.display = 'none'
-      document.getElementById('container').style.display = 'none'
-      document.getElementById('authButtons').style.display = 'none'
+      // Hide main UI elements (with null checks)
+      const topbar = document.getElementById('topbar')
+      const sidebar = document.getElementById('sidebar')
+      const container = document.getElementById('container')
+      const authButtons = document.getElementById('authButtons')
+      
+      if (topbar) topbar.style.display = 'none'
+      if (sidebar) sidebar.style.display = 'none'
+      if (container) container.style.display = 'none'
+      if (authButtons) authButtons.style.display = 'none'
       
       // Load public gear collection
       const { items: gearItems, ownerName } = await SupabaseService.getPublicGearCollection(gearToken)
