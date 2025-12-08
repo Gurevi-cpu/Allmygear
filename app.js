@@ -6023,6 +6023,85 @@
     })
   }
 
+  // ==================== PUBLIC GEAR SHARING ====================
+  
+  const shareAllGearBtn = document.getElementById('shareAllGearBtn')
+  const shareAllGearModal = document.getElementById('shareAllGearModal')
+  const closeShareAllGearModal = document.getElementById('closeShareAllGearModal')
+  const shareAllLoading = document.getElementById('shareAllLoading')
+  const shareAllContent = document.getElementById('shareAllContent')
+  const shareAllLinkInput = document.getElementById('shareAllLinkInput')
+  const copyShareAllLinkBtn = document.getElementById('copyShareAllLinkBtn')
+  const shareAllCopyFeedback = document.getElementById('shareAllCopyFeedback')
+  const deactivateShareAllBtn = document.getElementById('deactivateShareAllBtn')
+  
+  if (shareAllGearBtn) {
+    shareAllGearBtn.addEventListener('click', async () => {
+      try {
+        shareAllGearModal.classList.remove('hidden')
+        shareAllLoading.style.display = 'flex'
+        shareAllContent.style.display = 'none'
+        
+        const { shareUrl } = await SupabaseService.createPublicGearShare()
+        
+        shareAllLinkInput.value = shareUrl
+        shareAllLoading.style.display = 'none'
+        shareAllContent.style.display = 'block'
+      } catch (err) {
+        console.error('Error creating public share:', err)
+        alert('Failed to create share link: ' + err.message)
+        shareAllGearModal.classList.add('hidden')
+      }
+    })
+  }
+  
+  if (closeShareAllGearModal) {
+    closeShareAllGearModal.addEventListener('click', () => {
+      shareAllGearModal.classList.add('hidden')
+    })
+  }
+  
+  if (shareAllGearModal) {
+    shareAllGearModal.addEventListener('click', (e) => {
+      if (e.target === shareAllGearModal) {
+        shareAllGearModal.classList.add('hidden')
+      }
+    })
+  }
+  
+  if (copyShareAllLinkBtn) {
+    copyShareAllLinkBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareAllLinkInput.value)
+        shareAllCopyFeedback.style.display = 'block'
+        setTimeout(() => {
+          shareAllCopyFeedback.style.display = 'none'
+        }, 2000)
+      } catch (err) {
+        console.error('Failed to copy:', err)
+        // Fallback: select text
+        shareAllLinkInput.select()
+      }
+    })
+  }
+  
+  if (deactivateShareAllBtn) {
+    deactivateShareAllBtn.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to deactivate this share link? The link will stop working.')) {
+        return
+      }
+      
+      try {
+        await SupabaseService.deactivatePublicGearShare()
+        shareAllGearModal.classList.add('hidden')
+        alert('Share link deactivated successfully')
+      } catch (err) {
+        console.error('Error deactivating share:', err)
+        alert('Failed to deactivate share link: ' + err.message)
+      }
+    })
+  }
+
   // ==================== SHARING FUNCTIONALITY ====================
   
   const shareModal = document.getElementById('shareModal')
@@ -6145,6 +6224,13 @@
   async function checkForSharedItem() {
     const params = new URLSearchParams(window.location.search)
     const shareCode = params.get('share')
+    const gearToken = params.get('gear')
+    
+    // Check for public gear collection share
+    if (gearToken) {
+      await showPublicGearCollection(gearToken)
+      return
+    }
     
     if (!shareCode) return
     
@@ -6466,4 +6552,114 @@
       handleImageError(e.target)
     }
   }, true)
+  
+  // ==================== PUBLIC GEAR COLLECTION VIEW ====================
+  
+  async function showPublicGearCollection(gearToken) {
+    try {
+      // Hide main UI
+      document.getElementById('topbar').style.display = 'none'
+      document.getElementById('sidebar').style.display = 'none'
+      document.getElementById('container').style.display = 'none'
+      document.getElementById('authButtons').style.display = 'none'
+      
+      // Load public gear collection
+      const { items: gearItems, ownerName } = await SupabaseService.getPublicGearCollection(gearToken)
+      
+      // Create public view container
+      const publicView = document.createElement('div')
+      publicView.id = 'publicGearView'
+      publicView.style.cssText = 'max-width:1400px;margin:0 auto;padding:40px 20px;'
+      
+      // Group items by category
+      const grouped = {}
+      gearItems.forEach(item => {
+        const cat = item.category || 'Uncategorized'
+        if (!grouped[cat]) grouped[cat] = []
+        grouped[cat].push(item)
+      })
+      
+      // Calculate total stats
+      const totalWeight = gearItems.reduce((sum, item) => sum + (item.weight || 0), 0)
+      const totalPrice = gearItems.reduce((sum, item) => sum + (item.price || 0), 0)
+      
+      publicView.innerHTML = `
+        <div style="text-align:center;margin-bottom:40px;">
+          <h1 style="font-size:32px;margin-bottom:12px;color:var(--text);">${escapeHtml(ownerName)}'s Gear</h1>
+          <p style="color:var(--muted);font-size:16px;">Public gear collection (read-only view)</p>
+          <div style="display:flex;gap:24px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+            <div style="background:var(--glass);padding:16px 24px;border-radius:12px;">
+              <div style="color:var(--muted);font-size:13px;margin-bottom:4px;">Total Items</div>
+              <div style="font-size:24px;font-weight:600;color:var(--text);">${gearItems.length}</div>
+            </div>
+            <div style="background:var(--glass);padding:16px 24px;border-radius:12px;">
+              <div style="color:var(--muted);font-size:13px;margin-bottom:4px;">Total Weight</div>
+              <div style="font-size:24px;font-weight:600;color:var(--text);">${formatWeight(totalWeight)}</div>
+            </div>
+            ${totalPrice > 0 ? `
+            <div style="background:var(--glass);padding:16px 24px;border-radius:12px;">
+              <div style="color:var(--muted);font-size:13px;margin-bottom:4px;">Total Value</div>
+              <div style="font-size:24px;font-weight:600;color:var(--text);">${formatPrice(totalPrice)}</div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+        
+        ${Object.entries(grouped).map(([category, catItems]) => `
+          <div style="margin-bottom:32px;">
+            <h2 style="font-size:20px;margin-bottom:16px;color:var(--text);padding:12px;background:var(--glass);border-radius:8px;">
+              ${escapeHtml(category)} (${catItems.length})
+            </h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
+              ${catItems.map(item => `
+                <div style="background:var(--card-bg);padding:16px;border-radius:12px;border:1px solid var(--card-border);">
+                  ${item.image_path ? `<img src="${item.image_path}" style="width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px;">` : ''}
+                  <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text);">${escapeHtml(item.name)}</h3>
+                  ${item.brand || item.model ? `<div style="color:var(--muted);font-size:14px;margin-bottom:12px;">${escapeHtml(item.brand || '')} ${escapeHtml(item.model || '')}</div>` : ''}
+                  <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px;">
+                    ${item.weight ? `<span style="background:rgba(110,122,105,0.1);padding:6px 12px;border-radius:6px;color:var(--text);">${formatWeight(item.weight)}</span>` : ''}
+                    ${item.price ? `<span style="background:rgba(110,122,105,0.1);padding:6px 12px;border-radius:6px;color:var(--text);">${formatPrice(item.price)}</span>` : ''}
+                    ${item.year ? `<span style="background:rgba(110,122,105,0.1);padding:6px 12px;border-radius:6px;color:var(--text);">${item.year}</span>` : ''}
+                  </div>
+                  ${item.comment ? `<div style="margin-top:12px;padding:12px;background:rgba(110,122,105,0.05);border-radius:8px;font-size:14px;color:var(--muted);">${escapeHtml(item.comment)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+        
+        <div style="text-align:center;margin-top:60px;padding-top:40px;border-top:1px solid var(--card-border);">
+          <p style="color:var(--muted);font-size:14px;">Want to create your own gear list?</p>
+          <a href="${window.location.origin}${window.location.pathname}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:var(--accent);color:white;text-decoration:none;border-radius:8px;font-weight:600;">Start Using ALLMYGEAR</a>
+        </div>
+      `
+      
+      document.body.appendChild(publicView)
+      
+      // Load images for items with image_path
+      for (const item of gearItems) {
+        if (item.image_path) {
+          try {
+            const imageUrl = await SupabaseService.getPhotoUrl(item.image_path)
+            const imgElement = publicView.querySelector(`img[src="${item.image_path}"]`)
+            if (imgElement && imageUrl) {
+              imgElement.src = imageUrl
+            }
+          } catch (err) {
+            console.warn('Failed to load image:', err)
+          }
+        }
+      }
+      
+    } catch (err) {
+      console.error('Error loading public gear collection:', err)
+      document.body.innerHTML = `
+        <div style="max-width:600px;margin:100px auto;text-align:center;padding:40px;">
+          <h1 style="font-size:48px;margin-bottom:24px;">404</h1>
+          <p style="font-size:18px;color:var(--muted);margin-bottom:32px;">This gear collection was not found or is no longer available.</p>
+          <a href="${window.location.origin}${window.location.pathname}" style="display:inline-block;padding:12px 24px;background:var(--accent);color:white;text-decoration:none;border-radius:8px;font-weight:600;">Go to ALLMYGEAR</a>
+        </div>
+      `
+    }
+  }
 })()
