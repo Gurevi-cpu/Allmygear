@@ -551,14 +551,14 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
   color: #ff4444;
   transform: scale(1.1);
 }
-.category-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;background:rgba(110,122,105,0.12);border:1px solid rgba(110,122,105,0.2);border-radius:8px 8px 0 0;border-bottom:none;user-select:none;cursor:pointer}
+.category-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;background:rgba(110,122,105,0.12);border:1px solid rgba(110,122,105,0.2);border-radius:8px 8px 0 0;border-bottom:none;user-select:none;cursor:pointer;flex-wrap:wrap}
 .category-header:active{cursor:pointer}
 .category-header:has(+ .category-items.collapsed){border-radius:8px}
 .category-header:has(+ .category-items.collapsed:empty) .category-stats{display:none}
-.category-left{display:flex;align-items:center;gap:8px;height:36px}
+.category-left{display:flex;align-items:center;gap:8px;height:36px;min-width:0;flex:1 1 auto}
 .category-toggle{display:flex;align-items:center;gap:8px;flex:1;background:none;border:none;cursor:pointer;color:#d4d4d4;font-family:var(--font-body);font-weight:600;font-size:15px;padding:6px 0;margin:0;height:36px}
 .category-toggle .cat-title{line-height:36px;display:inline-block;vertical-align:middle}
-.category-controls{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;height:36px}
+.category-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;height:auto;min-height:36px}
 .category-sort-wrapper{position:relative;display:inline-flex;align-items:center;gap:8px}
 .category-sort-order-btn{width:36px;height:36px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;color:#6e7a69;cursor:pointer;transition:all 0.15s ease}
 .category-sort-order-btn.hidden{display:none}
@@ -577,7 +577,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .cat-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cat-chevron{width:18px;height:18px;transition:transform .2s ease;fill:#d4d4d4;flex:0 0 18px;transform:rotate(0deg);vertical-align:middle}
 .category-items.collapsed ~ .category-header .cat-chevron{transform:rotate(180deg)}
-.category-stats{display:flex;gap:12px;align-items:center;flex:0 0 auto;height:36px}
+.category-stats{display:flex;gap:12px;align-items:center;flex:0 1 auto;height:auto;min-height:36px;flex-wrap:wrap}
 .category-stats .stat{background:rgba(110,122,105,0.2);padding:6px 10px;border-radius:6px;font-size:12px;font-weight:500;color:#d4d4d4;white-space:nowrap;display:inline-flex;align-items:center;height:24px}
 .category-items{display:flex;flex-direction:column;gap:8px;padding:8px;background:rgba(110,122,105,0.04);border:1px solid rgba(110,122,105,0.2);border-radius:0 0 8px 8px;border-top:none;max-height:none;overflow:hidden;transition:max-height .25s ease,padding .25s ease,opacity .25s ease}
 .category-items.collapsed{max-height:0;padding:0;border:none;opacity:0;pointer-events:none}
@@ -876,8 +876,8 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .cat-move-btn:active{transform:translateY(0)}
 
 /* Toolbar that sits above the categories */
-.category-order-toolbar{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;margin-bottom:8px}
-.category-order-toolbar-inner{display:flex;align-items:center;gap:0}
+.category-order-toolbar{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;margin-bottom:8px;flex-wrap:wrap;gap:12px}
+.category-order-toolbar-inner{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 
 /* Search wrapper in toolbar */
 .toolbar-search-wrapper{display:flex;align-items:center;background:rgba(110,122,105,0.08);padding:6px 12px;border-radius:8px;border:1px solid rgba(110,122,105,0.15);gap:8px}
@@ -1339,7 +1339,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
   margin-bottom: 0;
   padding-bottom: 0;
 }
-.checklist-header{background:transparent;border:none;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all 0.25s ease;overflow:hidden;box-sizing:border-box}
+.checklist-header{background:transparent;border:none;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all 0.25s ease;overflow:hidden;box-sizing:border-box;flex-wrap:wrap}
 .checklist-header.complete{background:rgba(76,175,80,0.08);border-color:rgba(76,175,80,0.2)}
 .checklist-header.complete .stat{color:#2e7d32;font-weight:600}
 .checklist-header.complete .cat-title{color:#2e7d32}
@@ -1349,7 +1349,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .checklist-header .category-toggle .cat-title,.checklist-header .checklist-toggle-btn .cat-title{font-size:14px;font-weight:600;letter-spacing:0.3px;color:#d4d4d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .checklist-header .category-toggle .checklist-activities,.checklist-header .checklist-toggle-btn .checklist-activities{font-size:12px;font-weight:400;color:rgba(245,243,238,0.5);letter-spacing:0.2px}
 .checklist-header.complete .category-toggle .cat-title,.checklist-header.complete .checklist-toggle-btn .cat-title{color:#2e7d32}
-.checklist-header .category-stats{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.checklist-header .category-stats{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
 .checklist-header .category-stats .checklist-storage-filter{background:rgba(110,122,105,0.1);border:1px solid rgba(110,122,105,0.2);color:#d4d4d4;font-size:11px;padding:4px 8px;border-radius:6px;height:28px;cursor:pointer;transition:all 0.2s ease}
 .checklist-header .category-stats .checklist-storage-filter:hover{background:rgba(110,122,105,0.15)}
 .checklist-header .category-stats .btn.icon{background:rgba(110,122,105,0.1);border:1px solid rgba(110,122,105,0.2);width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all 0.2s ease}
