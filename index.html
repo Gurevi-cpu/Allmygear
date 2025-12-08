@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ALLMYGEAR — Gear List</title>
   
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Create and manage gear lists for your outdoor trips. Track weight, organize equipment by category, and build custom checklists.">
+  <meta name="keywords" content="gear list, outdoor equipment, hiking gear, camping checklist, ultralight, backpacking">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gurevi-cpu.github.io/Allmygear/">
+  <meta property="og:title" content="ALLMYGEAR — Gear List Manager">
+  <meta property="og:description" content="Create and manage gear lists for your outdoor trips. Track weight, organize equipment by category, and build custom checklists.">
+  <meta property="og:image" content="https://gurevi-cpu.github.io/Allmygear/android-chrome-512x512.png">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://gurevi-cpu.github.io/Allmygear/">
+  <meta property="twitter:title" content="ALLMYGEAR — Gear List Manager">
+  <meta property="twitter:description" content="Create and manage gear lists for your outdoor trips. Track weight, organize equipment by category, and build custom checklists.">
+  <meta property="twitter:image" content="https://gurevi-cpu.github.io/Allmygear/android-chrome-512x512.png">
+  
   <!-- Favicon and app icons -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -503,15 +521,6 @@
           <div id="avatarMessage" class="muted small-space"></div>
 
           <div class="profile-actions-vertical">
-            <button id="shareAllGearBtn" class="btn primary" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="18" cy="5" r="3"/>
-                <circle cx="6" cy="12" r="3"/>
-                <circle cx="18" cy="19" r="3"/>
-                <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
-              </svg>
-              Share All Gear
-            </button>
             <button id="profileSignOutBtn" class="btn ghost">Sign out</button>
           </div>
         </div>
@@ -538,53 +547,6 @@
           <div class="form-actions" style="margin-top:16px;display:flex;gap:12px;">
             <button id="cancelProfileBtn" class="btn">Cancel</button>
             <button id="saveProfileBtn" class="btn primary">Save changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Share All Gear Modal -->
-  <div id="shareAllGearModal" class="modal hidden">
-    <div class="modal-content share-modal">
-      <div class="modal-header">
-        <div class="modal-title-section">
-          <h2>Share Your Gear Collection</h2>
-          <p class="modal-subtitle">Create a public link to share all your gear (read-only)</p>
-        </div>
-        <button id="closeShareAllGearModal" class="modal-close-btn" aria-label="Close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body share-modal-body">
-        <div id="shareAllLoading" class="share-loading">
-          <div class="spinner"></div>
-          <span>Generating public link...</span>
-        </div>
-        <div id="shareAllContent" style="display:none;">
-          <p class="share-description">Anyone with this link can view your entire gear collection. They cannot save or edit anything.</p>
-          <div class="share-link-wrapper">
-            <input id="shareAllLinkInput" class="share-link-input" readonly>
-            <button id="copyShareAllLinkBtn" class="btn primary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy Link
-            </button>
-          </div>
-          <div id="shareAllCopyFeedback" class="copy-feedback" style="display:none;">✓ Link copied!</div>
-          <div class="share-actions">
-            <button id="deactivateShareAllBtn" class="btn ghost" style="color:#dc2626;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-              Deactivate Link
-            </button>
           </div>
         </div>
       </div>
