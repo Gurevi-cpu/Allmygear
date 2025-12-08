@@ -3769,14 +3769,13 @@
            </svg>` 
         : ''
       
-      // Combine dates and tags on one line
       const datesAndTagsHtml = (datesHtml || tagsHtml) 
         ? `<div class="checklist-meta-row">${datesHtml}${tagsHtml}</div>` 
         : ''
       
       checklistHeader.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-          <button class="checklist-toggle-btn" data-checklist-id="${checklist.id}" style="flex:1;min-width:0;background:none;border:none;cursor:pointer;text-align:left;padding:0;">
+        <div style="display:flex;align-items:center;width:100%;flex-wrap:wrap;gap:12px;">
+          <button class="checklist-toggle-btn" data-checklist-id="${checklist.id}" style="flex:1 1 300px;min-width:0;background:none;border:none;cursor:pointer;text-align:left;padding:0;">
             <div class="checklist-title-row">
               <div class="checklist-title-with-activities">
                 <span class="cat-title">${escapeHtml(checklist.name)}</span>
@@ -3794,7 +3793,7 @@
               </svg>
             </div>
           ` : ''}
-          <div class="category-stats" style="flex-shrink:0;">
+          <div class="category-stats" style="flex:0 1 auto;">
             ${storages.length > 0 ? `
               <select class="checklist-storage-filter" data-checklist-id="${checklist.id}" title="Filter by storage">
                 <option value="">All storages</option>
