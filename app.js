@@ -5467,16 +5467,12 @@
           localStorage.setItem(cacheTimeKey, Date.now().toString())
         } catch (e) {
           if (e.name === 'QuotaExceededError') {
-            // Clear old cache and try again with fresh URLs only
-            console.warn('localStorage quota exceeded, clearing old photo cache')
-            try {
-              localStorage.removeItem(cacheKey)
-              localStorage.removeItem(cacheTimeKey)
-              localStorage.setItem(cacheKey, JSON.stringify(freshUrls))
-              localStorage.setItem(cacheTimeKey, Date.now().toString())
-            } catch (retryError) {
-              console.error('Failed to cache photo URLs even after clearing:', retryError)
-            }
+            // Clear all photo cache - too large for localStorage
+            console.warn('localStorage quota exceeded - working without photo cache')
+            localStorage.removeItem(cacheKey)
+            localStorage.removeItem(cacheTimeKey)
+            // Continue without caching - use freshUrls directly
+            photoUrls = freshUrls
           } else {
             console.warn('Failed to cache photo URLs:', e)
           }
