@@ -1948,7 +1948,7 @@
       editingId = null
     } else {
       // Create in Supabase with optimistic UI update
-      itemId = crypto.randomUUID()
+      itemId = uid()
       const newItem = Object.assign({id:itemId, created:Date.now()}, data)
       
       // Optimistic update: add to UI immediately
@@ -4814,7 +4814,7 @@
       if(original){
         const copy = {
           ...original,
-          id: crypto.randomUUID(),
+          id: uid(),
           name: original.name + ' (copy)',
           created: Date.now(),
           items: original.items.map(it => ({...it, checked: false}))
@@ -5119,7 +5119,7 @@
       
       const newChecklist = {
         ...data,
-        id: crypto.randomUUID(),
+        id: uid(),
         created: Date.now(),
         items: selectedItemIds.map(itemId => ({itemId, checked: false}))
       }
