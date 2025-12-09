@@ -3250,49 +3250,64 @@
     })
   }
   
-  // Create storage from manage storages modal
-  const newStorageNameInManage = document.getElementById('newStorageNameInManage')
-  const saveStorageInManageBtn = document.getElementById('saveStorageInManage')
+  // Create storage from gear modal
+  const createStorageInModalBtn = document.getElementById('createStorageInModal')
+  const storageInlineForm = document.getElementById('storageInlineForm')
+  const newStorageNameInput = document.getElementById('newStorageName')
+  const saveStorageInlineBtn = document.getElementById('saveStorageInline')
+  const cancelStorageInlineBtn = document.getElementById('cancelStorageInline')
   
-  if (saveStorageInManageBtn && newStorageNameInManage) {
-    saveStorageInManageBtn.addEventListener('click', async () => {
-      const storageName = newStorageNameInManage.value.trim()
-      if (!storageName) {
-        alert('Please enter a storage name')
-        return
-      }
+  if (createStorageInModalBtn) {
+    createStorageInModalBtn.addEventListener('click', () => {
+      storageInlineForm.style.display = 'block'
+      newStorageNameInput.focus()
+    })
+  }
+  
+  if (cancelStorageInlineBtn) {
+    cancelStorageInlineBtn.addEventListener('click', () => {
+      storageInlineForm.style.display = 'none'
+      newStorageNameInput.value = ''
+    })
+  }
+  
+  if (saveStorageInlineBtn) {
+    saveStorageInlineBtn.addEventListener('click', async () => {
+      const storageName = newStorageNameInput.value.trim()
+      if (!storageName) return
       
       try {
-        saveStorageInManageBtn.disabled = true
-        saveStorageInManageBtn.textContent = 'Creating...'
+        saveStorageInlineBtn.disabled = true
+        saveStorageInlineBtn.textContent = 'Saving...'
         
         const newStorage = await SupabaseService.createStorage(storageName)
         storages.push(newStorage)
         populateStorageDropdown()
         
-        // Clear input and reset button
-        newStorageNameInManage.value = ''
-        saveStorageInManageBtn.disabled = false
-        saveStorageInManageBtn.textContent = 'Create'
+        // Select the newly created storage
+        const storageSelect = document.getElementById('storage')
+        if (storageSelect) {
+          storageSelect.value = newStorage.id
+        }
         
-        // Refresh the storages list in the modal
-        openManageStoragesModal()
+        // Hide form and reset
+        storageInlineForm.style.display = 'none'
+        newStorageNameInput.value = ''
+        saveStorageInlineBtn.disabled = false
+        saveStorageInlineBtn.textContent = 'Save'
       } catch (err) {
         console.error('Error creating storage:', err)
         alert('Failed to create storage: ' + err.message)
-        saveStorageInManageBtn.disabled = false
-        saveStorageInManageBtn.textContent = 'Create'
-      }
-    })
-    
-    // Handle Enter key in storage name input
-    newStorageNameInManage.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        saveStorageInManageBtn.click()
+        saveStorageInlineBtn.disabled = false
+        saveStorageInlineBtn.textContent = 'Save'
       }
     })
   }
+  
+  // Handle Enter key in storage name input
+  if (newStorageNameInput) {
+    newStorageNameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
         e.preventDefault()
         saveStorageInlineBtn?.click()
       }
