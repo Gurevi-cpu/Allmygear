@@ -640,7 +640,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .category-items.collapsed ~ .category-header .cat-chevron{transform:rotate(180deg)}
 .category-stats{display:flex;gap:12px;align-items:center;flex:0 1 auto;height:auto;min-height:36px;flex-wrap:wrap}
 .category-stats .stat{background:rgba(110,122,105,0.2);padding:6px 10px;border-radius:6px;font-size:12px;font-weight:500;color:#d4d4d4;white-space:nowrap;display:inline-flex;align-items:center;height:24px}
-.category-items{display:flex;flex-direction:column;gap:8px;padding:8px;background:rgba(110,122,105,0.04);border:1px solid rgba(110,122,105,0.2);border-radius:0 0 8px 8px;border-top:none;max-height:none;overflow:visible;transition:max-height .25s ease,padding .25s ease,opacity .25s ease}
+.category-items{display:flex;flex-direction:column;gap:8px;padding:8px;background:rgba(110,122,105,0.04);border:1px solid rgba(110,122,105,0.2);border-radius:0 0 8px 8px;border-top:none;max-height:none;overflow:hidden;transition:max-height .25s ease,padding .25s ease,opacity .25s ease}
 .category-items.collapsed{max-height:0;padding:0;border:none;opacity:0;pointer-events:none}
 .card{display:flex;align-items:center;gap:10px;background:#f7f8f5;padding:9px 10px 8px;border-radius:10px;box-shadow:0 8px 18px rgba(45,58,48,0.12);border:1px solid rgba(110,122,105,0.12);min-height:56px;color:var(--card-text);font-family:var(--font-body);position:relative;z-index:1;transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);overflow:visible;contain:layout style;content-visibility:auto}
 .card:hover{transform:translateY(-3px);transition:transform .12s ease}
@@ -1358,7 +1358,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
   background: rgba(110, 122, 105, 0.04);
   border-radius: 10px;
   border: 1px solid rgba(110, 122, 105, 0.2);
-  overflow: visible;
+  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1424,7 +1424,7 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .checklist-header .category-stats .btn.icon.edit svg{width:14px;height:14px;fill:#7a9ca8}
 .checklist-header .category-stats .stat{background:rgba(110,122,105,0.15);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;color:#d4d4d4;white-space:nowrap;display:inline-flex;align-items:center;height:20px}
 .checklist-header .cat-chevron{width:18px;height:18px;fill:rgba(212,212,212,0.6);transition:transform 0.25s ease;flex-shrink:0}
-.checklist-content{margin-top:0;padding:0 8px 8px;max-height:none;overflow:visible;opacity:1;transition:max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease}
+.checklist-content{margin-top:0;padding:0 8px 8px;max-height:80vh;overflow-y:auto;opacity:1;transition:max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease}
 .checklist-content.collapsed{max-height:0;padding:0;opacity:0;pointer-events:none}
 
 /* Checklist Cards - simplified style */
