@@ -62,14 +62,44 @@
   let checklistCollapsedState = {} // {checklistId: boolean} - track which checklists are collapsed
 
   // Immediately clean any legacy 'kitchen' entry from localStorage (persistent client-side state)
+  let localStorageUpdated = false
   try {
     const rawCat = localStorage.getItem('allmygear.categoryOrder')
     if (rawCat) {
       const arr = JSON.parse(rawCat)
       if (Array.isArray(arr)) {
-        const filtered = arr.filter(c => typeof c === 'string' && c.trim().toLowerCase() !== 'kitchen')
-        if (filtered.length !== arr.length) {
+        let filtered = arr.filter(c => typeof c === 'string' && c.trim().toLowerCase() !== 'kitchen')
+        
+        // Add "Photo/Video Gear" before "Ride Gear" if it doesn't exist
+        if (!filtered.includes('Photo/Video Gear')) {
+          const rideGearIndex = filtered.indexOf('Ride Gear')
+          if (rideGearIndex > -1) {
+            filtered.splice(rideGearIndex, 0, 'Photo/Video Gear')
+          } else {
+            const consumablesIndex = filtered.indexOf('Consumables')
+            if (consumablesIndex > -1) {
+              filtered.splice(consumablesIndex, 0, 'Photo/Video Gear')
+            } else {
+              filtered.push('Photo/Video Gear')
+            }
+          }
+          localStorageUpdated = true
+        }
+        
+        // Add "Ride Gear" before "Consumables" if it doesn't exist
+        if (!filtered.includes('Ride Gear')) {
+          const consumablesIndex = filtered.indexOf('Consumables')
+          if (consumablesIndex > -1) {
+            filtered.splice(consumablesIndex, 0, 'Ride Gear')
+          } else {
+            filtered.push('Ride Gear')
+          }
+          localStorageUpdated = true
+        }
+        
+        if (filtered.length !== arr.length || JSON.stringify(filtered) !== JSON.stringify(arr)) {
           localStorage.setItem('allmygear.categoryOrder', JSON.stringify(filtered))
+          localStorageUpdated = true
         }
       }
     }
@@ -77,11 +107,49 @@
     console.warn('Could not clean localStorage categoryOrder on startup:', e)
   }
 
-  // If user already signed in, ask Supabase to remove the legacy category from DB too
+  // If user already signed in, ask Supabase to remove the legacy category from DB and add new categories
   (async () => {
     try {
       if (window.SupabaseService && SupabaseService.currentUser) {
         await SupabaseService.removeKitchenCategoryEverywhere()
+        
+        // Add new categories to category order in Supabase if not present
+        const categoryOrderData = await SupabaseService.getCategoryOrder()
+        if (categoryOrderData && categoryOrderData.categories && Array.isArray(categoryOrderData.categories)) {
+          let cats = categoryOrderData.categories
+          let updated = false
+          
+          // Add "Photo/Video Gear" before "Ride Gear"
+          if (!cats.includes('Photo/Video Gear')) {
+            const rideGearIndex = cats.indexOf('Ride Gear')
+            if (rideGearIndex > -1) {
+              cats.splice(rideGearIndex, 0, 'Photo/Video Gear')
+            } else {
+              const consumablesIndex = cats.indexOf('Consumables')
+              if (consumablesIndex > -1) {
+                cats.splice(consumablesIndex, 0, 'Photo/Video Gear')
+              } else {
+                cats.push('Photo/Video Gear')
+              }
+            }
+            updated = true
+          }
+          
+          // Add "Ride Gear" before "Consumables"
+          if (!cats.includes('Ride Gear')) {
+            const consumablesIndex = cats.indexOf('Consumables')
+            if (consumablesIndex > -1) {
+              cats.splice(consumablesIndex, 0, 'Ride Gear')
+            } else {
+              cats.push('Ride Gear')
+            }
+            updated = true
+          }
+          
+          if (updated) {
+            await SupabaseService.saveCategoryOrder(cats)
+          }
+        }
       }
     } catch (err) {
       // Silently ignore legacy cleanup errors
@@ -563,7 +631,7 @@
   ])].sort()
   
   function loadCategoryOrder(){
-    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Photo/Video Gear', 'Ride Gear', 'Consumables']
     // localStorage disabled - use defaults, data loaded from Supabase for authenticated users
     
     categorySortMode = {}
@@ -579,7 +647,7 @@
   
   // Update category select dropdown to match user's category order
   function updateCategorySelect() {
-    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Photo/Video Gear', 'Ride Gear', 'Consumables']
     
     // Use categoryOrder if available, otherwise use defaults
     const orderedCategories = (categoryOrder && categoryOrder.length > 0) ? categoryOrder : defaultCategories
@@ -681,7 +749,7 @@
     cardsEl.innerHTML = ''
     
     // Use saved category order or fallback to defaults
-    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+    const defaultCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Photo/Video Gear', 'Ride Gear', 'Consumables']
     
     // Clean up category order from old category names
     if (categoryOrder && categoryOrder.includes('Bag / Package')) {
@@ -3486,6 +3554,8 @@
     await initAuth()
     
     if (!isAuthenticated) {
+      // Initialize defaults for non-authenticated users
+      loadCategoryOrder()
       // Redirect to auth for non-authenticated users
       showCustomAlert('Sign in to save your gear data and access it from any device.', 'Welcome to AllMyGear')
       return
@@ -4957,7 +5027,7 @@
   function renderCategoryCheckboxes(selectedCategories = []){
     if(!categoriesCheckboxesEl) return
     
-    const allCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+    const allCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Photo/Video Gear', 'Ride Gear', 'Consumables']
     
     categoriesCheckboxesEl.innerHTML = allCategories.map(cat => {
       const checked = selectedCategories.includes(cat) ? 'checked' : ''
@@ -5656,7 +5726,7 @@
       
       // Load category order
       const orderData = await SupabaseService.getCategoryOrder()
-      const allPossibleCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Consumables']
+      const allPossibleCategories = ['Shelter', 'Sleep System', 'Camp Furniture', 'Clothing', 'Footwear', 'Packs & Bags', 'Cooking', 'Electronics', 'Lighting', 'First Aid / Safety', 'Personal items / Documents', 'Knives & Tools', 'Technical Gear', 'Sports Equipment', 'Fishing & Hunting', 'Climbing & Rope', 'Winter & Snow', 'Photo/Video Gear', 'Ride Gear', 'Consumables']
       
       if (orderData && orderData.categories) {
         // Merge saved order with new categories
