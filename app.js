@@ -1377,11 +1377,6 @@
               return `<option value="${st.id}" ${selected}>${escapeHtml(st.name)}</option>`
             }).join('')}
           </select>
-          <button class="toolbar-storage-btn" id="toolbarCreateStorage" title="Create new storage">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-          </button>
           <button class="toolbar-storage-btn" id="toolbarManageStorages" title="Manage storages">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
@@ -1432,13 +1427,6 @@
         toolbarStorageFilter.addEventListener('change', (e) => {
           currentStorageFilter = e.target.value || null
           render()
-        })
-      }
-      
-      const toolbarCreateStorage = toolbar.querySelector('#toolbarCreateStorage')
-      if (toolbarCreateStorage) {
-        toolbarCreateStorage.addEventListener('click', () => {
-          openCreateStorageModal()
         })
       }
       
