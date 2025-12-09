@@ -1,4 +1,23 @@
 (function(){
+  // App loader
+  const appLoader = document.getElementById('appLoader')
+  
+  function showLoader(text = 'Loading your gear...') {
+    if (appLoader) {
+      const loaderText = appLoader.querySelector('.loader-text')
+      if (loaderText) loaderText.textContent = text
+      appLoader.classList.remove('hidden')
+    }
+  }
+  
+  function hideLoader() {
+    if (appLoader) {
+      setTimeout(() => {
+        appLoader.classList.add('hidden')
+      }, 300)
+    }
+  }
+  
   // Authentication state
   let isAuthenticated = false
   let isLoading = false
@@ -5390,10 +5409,14 @@
       const user = await SupabaseService.getCurrentUser()
       if (user) {
         handleAuthSuccess(user)
+      } else {
+        // Hide loader if not authenticated
+        hideLoader()
       }
       // Removed: automatic modal opening if not authenticated
     } catch (err) {
       console.error('Auth init error:', err)
+      hideLoader()
       // Removed: automatic modal opening on error
     }
   }
@@ -5416,6 +5439,9 @@
     isAuthenticated = true
     useSupabase = true
     hideAuthModal()
+    
+    // Show loader while loading data
+    showLoader('Loading your gear...')
     
     // Hide sign in button and show user status
     signInBtn.style.display = 'none'
@@ -5441,6 +5467,9 @@
     
     // Setup realtime subscriptions
     setupRealtimeSync()
+    
+    // Hide loader when done
+    hideLoader()
   }
 
   function autoOrganizeCategories() {

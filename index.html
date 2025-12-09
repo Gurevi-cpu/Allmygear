@@ -30,6 +30,14 @@
   <script src="supabase-service.js"></script>
 </head>
 <body>
+  <!-- Loading overlay -->
+  <div id="appLoader" class="app-loader">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <p class="loader-text">Loading your gear...</p>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="header-left">
       <button id="signInBtn" class="btn primary" style="display:block;margin-right:12px;">
