@@ -3261,7 +3261,7 @@
         storages.push(newStorage)
         
         // Refresh storage list
-        populateManageStoragesList()
+        openManageStoragesModal()
         populateStorageDropdown()
         
         // Clear input
