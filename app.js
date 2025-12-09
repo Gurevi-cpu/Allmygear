@@ -3241,6 +3241,63 @@
     })
   }
   
+  // Add storage in manage modal
+  const addStorageInManageBtn = document.getElementById('addStorageInManage')
+  const newStorageNameInManage = document.getElementById('newStorageNameInManage')
+  
+  if (addStorageInManageBtn && newStorageNameInManage) {
+    addStorageInManageBtn.addEventListener('click', async () => {
+      const storageName = newStorageNameInManage.value.trim()
+      if (!storageName) {
+        alert('Please enter a storage name')
+        return
+      }
+      
+      try {
+        addStorageInManageBtn.disabled = true
+        addStorageInManageBtn.textContent = 'Creating...'
+        
+        const newStorage = await SupabaseService.createStorage(storageName)
+        storages.push(newStorage)
+        
+        // Refresh storage list
+        populateManageStoragesList()
+        populateStorageDropdown()
+        
+        // Clear input
+        newStorageNameInManage.value = ''
+        
+        addStorageInManageBtn.disabled = false
+        addStorageInManageBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        `
+      } catch (err) {
+        console.error('Error creating storage:', err)
+        alert('Failed to create storage: ' + err.message)
+        addStorageInManageBtn.disabled = false
+        addStorageInManageBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add
+        `
+      }
+    })
+    
+    // Handle Enter key
+    newStorageNameInManage.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        addStorageInManageBtn.click()
+      }
+    })
+  }
+  
   // Create Storage Modal handlers
   const createStorageModal = document.getElementById('createStorageModal')
   const closeCreateStorageModalBtn = document.getElementById('closeCreateStorageModal')

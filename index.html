@@ -738,6 +738,23 @@
         </button>
       </div>
       <div class="modal-body">
+        <!-- Add new storage form -->
+        <div style="margin-bottom:20px;padding:16px;background:rgba(255,122,58,0.05);border:1px solid rgba(255,122,58,0.2);border-radius:8px;">
+          <div style="display:flex;gap:12px;align-items:flex-end;">
+            <div style="flex:1;">
+              <label class="field-label" style="margin-bottom:6px;display:block;">New Storage Location</label>
+              <input type="text" id="newStorageNameInManage" class="field-input" placeholder="Enter storage name..." style="margin:0;">
+            </div>
+            <button id="addStorageInManage" class="btn primary" style="white-space:nowrap;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add
+            </button>
+          </div>
+        </div>
+        
         <div id="storagesList" class="storages-list">
           <!-- Populated by JS -->
         </div>
