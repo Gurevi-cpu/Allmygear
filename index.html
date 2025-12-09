@@ -198,23 +198,9 @@
 
         <div class="form-section">
           <label class="field-label">Storage Location</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <select id="storage" class="field-input" style="flex:1;">
-              <option value="">No storage specified</option>
-            </select>
-            <button type="button" id="createStorageInModal" class="btn icon" title="Create new storage" style="flex-shrink:0;">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
-              </svg>
-            </button>
-          </div>
-          <div id="storageInlineForm" style="display:none;margin-top:8px;">
-            <div style="display:flex;gap:8px;">
-              <input type="text" id="newStorageName" class="field-input" placeholder="New storage name..." style="flex:1;">
-              <button type="button" id="saveStorageInline" class="btn primary" style="flex-shrink:0;">Save</button>
-              <button type="button" id="cancelStorageInline" class="btn secondary" style="flex-shrink:0;">Cancel</button>
-            </div>
-          </div>
+          <select id="storage" class="field-input">
+            <option value="">No storage specified</option>
+          </select>
         </div>
 
         <div class="form-section" id="addToChecklistsSection" style="display:none;">
@@ -730,6 +716,16 @@
         </button>
       </div>
       <div class="modal-body">
+        <!-- Create new storage form -->
+        <div style="margin-bottom:24px;padding:16px;background:var(--glass);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">
+          <h3 style="margin:0 0 12px 0;font-size:14px;font-weight:600;color:var(--text);">Create New Storage</h3>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="newStorageNameInManage" class="field-input" placeholder="Storage name (e.g., Garage, Basement)" style="flex:1;">
+            <button type="button" id="saveStorageInManage" class="btn primary" style="flex-shrink:0;">Create</button>
+          </div>
+        </div>
+        
+        <!-- Existing storages list -->
         <div id="storagesList" class="storages-list">
           <!-- Populated by JS -->
         </div>
