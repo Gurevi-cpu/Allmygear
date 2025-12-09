@@ -7,7 +7,7 @@
   
   <!-- Content Security Policy to prevent ad injection -->
   <meta http-equiv="Permissions-Policy" content="clipboard-write=(self)">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.unsplash.com https://api.unsplash.com https://images.unsplash.com; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'none'; object-src 'none'; form-action 'self' https://*.supabase.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.supabase.co https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://plausible.io https://www.unsplash.com https://api.unsplash.com https://images.unsplash.com; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'none'; object-src 'none'; form-action 'self' https://*.supabase.co;">
   
   <!-- Favicon and app icons -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -22,6 +22,10 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Outfit:wght@400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- Plausible Analytics -->
+  <script defer data-domain="all-my-gear.pro" src="https://plausible.io/js/script.js"></script>
+  
   <!-- HEIC to JPEG converter for iPhone photos -->
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <!-- Supabase JS SDK -->
