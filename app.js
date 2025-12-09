@@ -4987,10 +4987,12 @@
     gearItemsCheckboxesEl.querySelectorAll('.gear-item-cb').forEach(cb => {
       cb.addEventListener('change', (e) => {
         const container = e.target.closest('.gear-item-checkbox')
-        if(e.target.checked){
-          container.classList.add('selected')
-        } else {
-          container.classList.remove('selected')
+        if(container) {
+          if(e.target.checked){
+            container.classList.add('selected')
+          } else {
+            container.classList.remove('selected')
+          }
         }
       })
     })
