@@ -6029,8 +6029,8 @@
       authToggleBtn.textContent = 'Sign Up'
       nicknameSection.style.display = 'none'
       authNickname.required = false
-      // Show OAuth buttons for login
-      if (oauthSignInSection) oauthSignInSection.style.display = 'block'
+      // Hide OAuth buttons (not configured yet)
+      if (oauthSignInSection) oauthSignInSection.style.display = 'none'
     }
   }
   
