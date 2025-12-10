@@ -6667,7 +6667,16 @@
   // Copy checklist share link
   copyShareChecklistLink?.addEventListener('click', async () => {
     try {
-      await navigator.clipboard.writeText(shareChecklistLinkInput.value)
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareChecklistLinkInput.value)
+      } else {
+        // Fallback for older browsers or file:// protocol
+        shareChecklistLinkInput.select()
+        shareChecklistLinkInput.setSelectionRange(0, 99999) // For mobile
+        document.execCommand('copy')
+      }
+      
       shareChecklistCopySuccess.style.display = 'block'
       copyShareChecklistLink.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -6686,6 +6695,16 @@
       }, 2000)
     } catch (err) {
       console.error('Failed to copy checklist link:', err)
+      // Show error to user
+      copyShareChecklistLink.innerHTML = `Copy failed`
+      setTimeout(() => {
+        copyShareChecklistLink.innerHTML = `
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+          </svg>
+          Copy
+        `
+      }, 2000)
     }
   })
   
