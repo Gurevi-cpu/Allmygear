@@ -692,6 +692,32 @@
     </div>
   </div>
 
+  <!-- View Shared Checklist Modal -->
+  <div id="viewSharedChecklistModal" class="modal hidden">
+    <div class="modal-content shared-item-modal">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2>Shared Checklist</h2>
+          <p class="modal-subtitle">Someone shared this checklist with you</p>
+        </div>
+        <button id="closeViewSharedChecklistModal" class="modal-close-btn" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="sharedChecklistContent" class="shared-checklist-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="shared-item-actions">
+        <button id="closeSharedChecklistView" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Create Storage Modal -->
   <div id="createStorageModal" class="modal hidden">
     <div class="modal-content" style="max-width:420px;">

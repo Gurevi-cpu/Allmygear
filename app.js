@@ -6514,6 +6514,89 @@
   // Check for shared item on load
   checkForSharedItem()
 
+  // Check for shared checklist in URL
+  async function checkForSharedChecklist() {
+    const params = new URLSearchParams(window.location.search)
+    const shareCode = params.get('checklist')
+    
+    if (!shareCode) return
+    
+    try {
+      const sharedChecklist = await SupabaseService.getSharedChecklist(shareCode)
+      const viewSharedChecklistModal = document.getElementById('viewSharedChecklistModal')
+      const closeViewSharedChecklistModal = document.getElementById('closeViewSharedChecklistModal')
+      const closeSharedChecklistView = document.getElementById('closeSharedChecklistView')
+      const sharedChecklistContent = document.getElementById('sharedChecklistContent')
+      
+      if (!viewSharedChecklistModal || !sharedChecklistContent) {
+        console.error('Shared checklist modal elements not found')
+        return
+      }
+      
+      // Calculate total weight
+      const totalWeight = (sharedChecklist.items || []).reduce((sum, item) => sum + (Number(item.weight) || 0), 0)
+      const totalPrice = (sharedChecklist.items || []).reduce((sum, item) => sum + (Number(item.price) || 0), 0)
+      
+      // Render shared checklist preview
+      sharedChecklistContent.innerHTML = `
+        <div class="shared-checklist-header">
+          <h3>${escapeHtml(sharedChecklist.name)}</h3>
+          ${sharedChecklist.tags && sharedChecklist.tags.length > 0 ? `
+            <div class="shared-checklist-tags">
+              ${sharedChecklist.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+            </div>
+          ` : ''}
+          ${sharedChecklist.start_date || sharedChecklist.end_date ? `
+            <div class="shared-checklist-dates">
+              ${sharedChecklist.start_date ? new Date(sharedChecklist.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}
+              ${sharedChecklist.start_date && sharedChecklist.end_date ? ' — ' : ''}
+              ${sharedChecklist.end_date ? new Date(sharedChecklist.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}
+            </div>
+          ` : ''}
+          <div class="shared-checklist-stats">
+            <span><strong>${(sharedChecklist.items || []).length}</strong> items</span>
+            <span><strong>${formatWeight(totalWeight)}</strong> total</span>
+            ${totalPrice > 0 ? `<span><strong>${formatPrice(totalPrice)}</strong> value</span>` : ''}
+          </div>
+        </div>
+        <div class="shared-checklist-items">
+          ${(sharedChecklist.items || []).map(item => `
+            <div class="shared-checklist-item">
+              <div class="shared-checklist-item-name">${escapeHtml(item.name || 'Unnamed item')}</div>
+              <div class="shared-checklist-item-details">
+                ${item.brand ? `<span>${escapeHtml(item.brand)}</span>` : ''}
+                ${item.category ? `<span class="shared-checklist-item-category">${escapeHtml(item.category)}</span>` : ''}
+                ${item.weight ? `<span class="shared-checklist-item-weight">${formatWeight(item.weight)}</span>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `
+      
+      viewSharedChecklistModal.classList.remove('hidden')
+      
+      // Close handlers
+      const closeModal = () => {
+        viewSharedChecklistModal.classList.add('hidden')
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+      
+      closeViewSharedChecklistModal?.addEventListener('click', closeModal)
+      closeSharedChecklistView?.addEventListener('click', closeModal)
+      
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname)
+      
+    } catch (err) {
+      console.error('Error loading shared checklist:', err)
+      alert('Could not load shared checklist: ' + err.message)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }
+  
+  // Check for shared checklist on load
+  checkForSharedChecklist()
+
   // =============================================
   // SHARE CHECKLIST FUNCTIONALITY
   // =============================================

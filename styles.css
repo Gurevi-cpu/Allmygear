@@ -2771,6 +2771,87 @@ body.checklists-mode {
   color: #fbbf24;
 }
 
+/* Shared Checklist Styles */
+.shared-checklist-content {
+  padding: 0;
+}
+
+.shared-checklist-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(110, 122, 105, 0.12);
+}
+
+.shared-checklist-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--card-text);
+  margin: 0 0 12px 0;
+}
+
+.shared-checklist-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.shared-checklist-dates {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.shared-checklist-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.shared-checklist-stats strong {
+  color: var(--card-text);
+  font-weight: 600;
+}
+
+.shared-checklist-items {
+  padding: 16px 32px 24px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.shared-checklist-item {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(110, 122, 105, 0.08);
+}
+
+.shared-checklist-item:last-child {
+  border-bottom: none;
+}
+
+.shared-checklist-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--card-text);
+  margin-bottom: 4px;
+}
+
+.shared-checklist-item-details {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.shared-checklist-item-category {
+  color: var(--brand-orange);
+}
+
+.shared-checklist-item-weight {
+  font-weight: 500;
+  color: var(--card-text);
+}
+
 /* OAuth Buttons */
 .oauth-buttons {
   display: flex;
