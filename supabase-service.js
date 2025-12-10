@@ -965,7 +965,7 @@ const SupabaseService = {
           price: item.price,
           year: item.year,
           rating: item.rating,
-          image_path: item.imagePath
+          image_path: item.image_path
         },
         created_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
