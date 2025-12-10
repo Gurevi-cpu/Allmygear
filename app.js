@@ -6269,6 +6269,13 @@
       return
     }
     
+    // Find item data in memory
+    const item = items.find(i => i.id === itemId)
+    if (!item) {
+      alert('Item not found')
+      return
+    }
+    
     // Show modal with loading
     shareModal.classList.remove('hidden')
     shareLoading.style.display = 'flex'
@@ -6276,7 +6283,7 @@
     shareCopySuccess.style.display = 'none'
     
     try {
-      const { shareUrl } = await SupabaseService.createShareLink(itemId)
+      const { shareUrl } = await SupabaseService.createShareLink(itemId, item)
       shareLinkInput.value = shareUrl
       shareLoading.style.display = 'none'
       shareContent.style.display = 'block'
@@ -6533,7 +6540,7 @@
     shareChecklistCopySuccess.style.display = 'none'
     
     try {
-      const { shareUrl } = await SupabaseService.createChecklistShare(checklist.id)
+      const { shareUrl } = await SupabaseService.createChecklistShare(checklist.id, checklist)
       shareChecklistLinkInput.value = shareUrl
       shareChecklistLoading.style.display = 'none'
       shareChecklistContent.style.display = 'block'

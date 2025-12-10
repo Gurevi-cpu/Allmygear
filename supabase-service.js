@@ -943,24 +943,13 @@ const SupabaseService = {
   // ==================== SHARING ====================
   
   // Create a share link for a gear item
-  async createShareLink(itemId) {
+  async createShareLink(itemId, item) {
     if (!this.currentUser) throw new Error('Not authenticated')
     
     // Generate unique share code
     const shareCode = this.generateShareCode()
     
-    // Get the item data first
-    const { data: item, error: itemError } = await supabase
-      .from('gear_items')
-      .select('*')
-      .eq('id', itemId)
-      .eq('user_id', this.currentUser.id)
-      .single()
-    
-    if (itemError) throw itemError
-    if (!item) throw new Error('Item not found')
-    
-    // Create share record
+    // Create share record (item data passed from client to avoid extra DB query)
     const { data, error } = await supabase
       .from('shared_items')
       .insert([{
@@ -976,7 +965,7 @@ const SupabaseService = {
           price: item.price,
           year: item.year,
           rating: item.rating,
-          image_path: item.image_path
+          image_path: item.imagePath
         },
         created_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
@@ -1123,42 +1112,20 @@ const SupabaseService = {
   // ==================== CHECKLIST SHARING ====================
   
   // Create a share link for a checklist
-  async createChecklistShare(checklistId) {
+  async createChecklistShare(checklistId, checklist) {
     if (!this.currentUser) throw new Error('Not authenticated')
     
     // Generate unique share code
     const shareCode = this.generateShareCode()
     
-    // Get the checklist data with all items (items are stored as JSON array in checklist.items)
-    const { data: checklist, error: checklistError } = await supabase
-      .from('checklists')
-      .select('*')
-      .eq('id', checklistId)
-      .eq('user_id', this.currentUser.id)
-      .single()
-    
-    if (checklistError) throw checklistError
-    if (!checklist) throw new Error('Checklist not found')
-    
-    // Prepare checklist data - items are already in checklist.items as JSON
+    // Prepare checklist data (passed from client to avoid DB query)
     const checklistData = {
       name: checklist.name,
-      created_at: checklist.created_at,
+      created_at: checklist.created,
+      start_date: checklist.startDate,
+      end_date: checklist.endDate,
+      tags: checklist.tags,
       items: checklist.items || []
-    }
-    
-    // Load images for items if they have image_path
-    if (checklistData.items && checklistData.items.length > 0) {
-      for (const item of checklistData.items) {
-        if (item.image_path) {
-          // Store image URL in item_data for sharing
-          try {
-            item.image = await this.getPhotoUrl(item.image_path)
-          } catch (err) {
-            console.warn('Failed to load image for item:', item.id, err)
-          }
-        }
-      }
     }
     
     // Create share record (reusing shared_items table with checklist_id field)
