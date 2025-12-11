@@ -6643,9 +6643,13 @@
     shareChecklistCopySuccess.style.display = 'none'
     
     try {
+      console.log('Checklist to share:', checklist)
+      console.log('Available items:', items.length)
+      
       // Get full item data for each item in checklist
       const fullItems = checklist.items.map(checklistItem => {
         const item = items.find(i => i.id === checklistItem.itemId)
+        console.log(`Looking for item ${checklistItem.itemId}:`, item)
         if (!item) return null
         return {
           id: item.id,
@@ -6661,13 +6665,17 @@
         }
       }).filter(item => item !== null)
       
+      console.log('Full items for sharing:', fullItems)
+      
       // Create checklist data with full items
       const checklistWithFullItems = {
         ...checklist,
         items: fullItems
       }
       
+      console.log('Calling createChecklistShare...')
       const { shareUrl } = await SupabaseService.createChecklistShare(checklist.id, checklistWithFullItems)
+      console.log('Share URL created:', shareUrl)
       shareChecklistLinkInput.value = shareUrl
       shareChecklistLoading.style.display = 'none'
       shareChecklistContent.style.display = 'block'
