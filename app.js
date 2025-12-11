@@ -6636,6 +6636,9 @@
       return
     }
     
+    console.log('Sharing checklist:', checklist)
+    console.log('Checklist items:', checklist.items)
+    
     // Show modal with loading
     shareChecklistModal.classList.remove('hidden')
     shareChecklistLoading.style.display = 'flex'
