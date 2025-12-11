@@ -6636,9 +6636,6 @@
       return
     }
     
-    console.log('Sharing checklist:', checklist)
-    console.log('Checklist items:', checklist.items)
-    
     // Show modal with loading
     shareChecklistModal.classList.remove('hidden')
     shareChecklistLoading.style.display = 'flex'
@@ -6646,7 +6643,31 @@
     shareChecklistCopySuccess.style.display = 'none'
     
     try {
-      const { shareUrl } = await SupabaseService.createChecklistShare(checklist.id, checklist)
+      // Get full item data for each item in checklist
+      const fullItems = checklist.items.map(checklistItem => {
+        const item = items.find(i => i.id === checklistItem.itemId)
+        if (!item) return null
+        return {
+          id: item.id,
+          name: item.name,
+          brand: item.brand,
+          model: item.model,
+          category: item.category,
+          weight: item.weight,
+          price: item.price,
+          year: item.year,
+          image_path: item.image_path,
+          checked: checklistItem.checked
+        }
+      }).filter(item => item !== null)
+      
+      // Create checklist data with full items
+      const checklistWithFullItems = {
+        ...checklist,
+        items: fullItems
+      }
+      
+      const { shareUrl } = await SupabaseService.createChecklistShare(checklist.id, checklistWithFullItems)
       shareChecklistLinkInput.value = shareUrl
       shareChecklistLoading.style.display = 'none'
       shareChecklistContent.style.display = 'block'
