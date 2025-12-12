@@ -104,7 +104,7 @@ body.checklists-mode {
 }
 *{box-sizing:border-box}
 .body-font{font-family:var(--font-body)}
-body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-primary-1) 0%, var(--bg-primary-2) 20%, var(--bg-primary-1) 80%, var(--bg-primary-3) 100%); color:var(--text); margin:0; padding:0; min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-primary-1) 0%, var(--bg-primary-2) 20%, var(--bg-primary-1) 80%, var(--bg-primary-3) 100%); color:var(--text); margin:0; padding:0; min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overscroll-behavior-y:none;}
 
 /* Header - responsive structure that adapts to zoom */
 .topbar{
@@ -1424,8 +1424,8 @@ input[type=text], input[type=number], select, input[type=search], input[type=fil
 .checklist-header .category-stats .btn.icon.edit svg{width:14px;height:14px;fill:#7a9ca8}
 .checklist-header .category-stats .stat{background:rgba(110,122,105,0.15);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;color:#d4d4d4;white-space:nowrap;display:inline-flex;align-items:center;height:20px}
 .checklist-header .cat-chevron{width:18px;height:18px;fill:rgba(212,212,212,0.6);transition:transform 0.25s ease;flex-shrink:0}
-.checklist-content{margin-top:0;padding:0 8px 8px;max-height:80vh;overflow-y:auto;opacity:1;transition:max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease}
-.checklist-content.collapsed{max-height:0;padding:0;opacity:0;pointer-events:none}
+.checklist-content{margin-top:0;padding:0 8px 8px;max-height:80vh;overflow-y:auto;overflow-x:hidden;opacity:1;transition:max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.checklist-content.collapsed{max-height:0;padding:0;opacity:0;pointer-events:none;overflow:hidden}
 
 /* Checklist Cards - simplified style */
 #checklistCards .category-header{cursor:var(--cursor-pointer)}
