@@ -104,7 +104,7 @@ body.checklists-mode {
 }
 *{box-sizing:border-box}
 .body-font{font-family:var(--font-body)}
-body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-primary-1) 0%, var(--bg-primary-2) 20%, var(--bg-primary-1) 80%, var(--bg-primary-3) 100%); color:var(--text); margin:0; padding:0; min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overscroll-behavior-y:none;}
+body{font-family:var(--font-body); background:linear-gradient(135deg, var(--bg-primary-1) 0%, var(--bg-primary-2) 20%, var(--bg-primary-1) 80%, var(--bg-primary-3) 100%); color:var(--text); margin:0; padding:0; min-height:100vh; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overscroll-behavior-y:none; position:relative; overflow-x:hidden;}
 
 /* Header - responsive structure that adapts to zoom */
 .topbar{
@@ -2940,6 +2940,8 @@ body.checklists-mode {
 html {
   /* Default 10% smaller */
   zoom: 0.9;
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
 }
 
 @supports not (zoom: 0.9) {
