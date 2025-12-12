@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=5" />
   <title>All My Gear</title>
   
+  <!-- Force HTTPS redirect -->
+  <script>
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+    }
+  </script>
+  
   <!-- Content Security Policy to prevent ad injection -->
   <meta http-equiv="Permissions-Policy" content="clipboard-write=(self)">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.unsplash.com https://api.unsplash.com https://images.unsplash.com; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'none'; object-src 'none'; form-action 'self' https://*.supabase.co;">
