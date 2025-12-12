@@ -1993,20 +1993,38 @@
 
     let itemId
     if(editingId){
-      // Update in Supabase
-      try {
-        await SupabaseService.updateGearItem(editingId, data)
-        // Update local array
-        const idx = items.findIndex(i=>i.id===editingId)
-        if(idx!==-1){
-          items[idx] = Object.assign({id:editingId}, data)
-        }
-      } catch(err) {
-        alert('Error updating item: ' + err.message)
-        return
+      // Optimistic update: update UI immediately
+      const idx = items.findIndex(i=>i.id===editingId)
+      const oldItem = idx !== -1 ? {...items[idx]} : null
+      
+      if(idx!==-1){
+        items[idx] = {...items[idx], ...data}
       }
+      
       itemId = editingId
       editingId = null
+      
+      // Update UI immediately
+      invalidateStatsCache()
+      render()
+      modal.classList.add('hidden')
+      form.reset()
+      currentPhotoData = null
+      photoPreview.innerHTML = ''
+      
+      // Save to Supabase in background
+      SupabaseService.updateGearItem(itemId, data).catch(err => {
+        console.error('Error updating item:', err)
+        // Rollback on error
+        if(oldItem && idx !== -1) {
+          items[idx] = oldItem
+          invalidateStatsCache()
+          render()
+        }
+        alert('Error updating item: ' + err.message)
+      })
+      
+      return // Exit early to prevent duplicate render
     } else {
       // Create in Supabase with optimistic UI update
       itemId = uid()
@@ -2447,12 +2465,12 @@
           const itemIdx = items.findIndex(i => i.id === id)
           if(itemIdx !== -1){
             items[itemIdx].image = data
-            try {
-              await SupabaseService.updateGearItem(id, { image: data })
-              render() // Re-render to update thumbnail
-            } catch (err) {
+            render() // Re-render to update thumbnail immediately
+            
+            // Save to Supabase in background
+            SupabaseService.updateGearItem(id, { image: data }).catch(err => {
               console.error('Error updating item with photo:', err)
-            }
+            })
           }
           
           if(message) {
@@ -2473,12 +2491,12 @@
           const itemIdx = items.findIndex(i => i.id === id)
           if(itemIdx !== -1){
             items[itemIdx].image = data
-            try {
-              await SupabaseService.updateGearItem(id, { image: data })
-              render() // Re-render to update thumbnail
-            } catch (err) {
+            render() // Re-render to update thumbnail immediately
+            
+            // Save to Supabase in background
+            SupabaseService.updateGearItem(id, { image: data }).catch(err => {
               console.error('Error updating item with photo:', err)
-            }
+            })
           }
           
           if(approxSize <= MAX_IMAGE_SIZE){
@@ -2522,12 +2540,12 @@
         const itemIdx = items.findIndex(i => i.id === id)
         if(itemIdx !== -1){
           items[itemIdx].image = null
-          try {
-            await SupabaseService.updateGearItem(id, { image: null })
-            render()
-          } catch (err) {
+          render() // Re-render immediately
+          
+          // Save to Supabase in background
+          SupabaseService.updateGearItem(id, { image: null }).catch(err => {
             console.error('Error removing photo:', err)
-          }
+          })
         }
       }
       return
@@ -2546,12 +2564,12 @@
         const itemIdx = items.findIndex(i => i.id === id)
         if(itemIdx !== -1){
           items[itemIdx].image = null
-          try {
-            await SupabaseService.updateGearItem(id, { image: null })
-            render()
-          } catch (err) {
+          render() // Re-render immediately
+          
+          // Save to Supabase in background
+          SupabaseService.updateGearItem(id, { image: null }).catch(err => {
             console.error('Error removing photo:', err)
-          }
+          })
         }
       }
       return
@@ -2602,14 +2620,13 @@
         }
         // If photoChanged flag is not set, preserve existing image
         
-        // Save to Supabase for authenticated users
+        // Save to Supabase for authenticated users (in background)
         if(isAuthenticated) {
-          try {
-            await SupabaseService.updateGearItem(id, items[itemIdx])
-          } catch(err) {
+          const itemData = {...items[itemIdx]}
+          SupabaseService.updateGearItem(id, itemData).catch(err => {
+            console.error('Error updating item:', err)
             alert('Error updating item: ' + err.message)
-            return
-          }
+          })
         }
       }
       
@@ -2691,13 +2708,23 @@
       }
       
       showConfirm('Delete item?', 'This action cannot be undone.', async ()=>{
-        try {
-          await SupabaseService.deleteGearItem(id)
-          items = items.filter(i=>i.id!==id)
-          render()
-        } catch(err) {
+        // Optimistic delete: remove from UI immediately
+        const deletedItem = items.find(i=>i.id===id)
+        items = items.filter(i=>i.id!==id)
+        invalidateStatsCache()
+        render()
+        
+        // Delete from Supabase in background
+        SupabaseService.deleteGearItem(id).catch(err => {
+          console.error('Error deleting item:', err)
+          // Rollback on error
+          if(deletedItem) {
+            items.push(deletedItem)
+            invalidateStatsCache()
+            render()
+          }
           alert('Error deleting item: ' + err.message)
-        }
+        })
       })
     }
   })
