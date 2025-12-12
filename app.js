@@ -3568,6 +3568,7 @@
   // ==================== CHECKLIST FUNCTIONALITY ====================
   
   let checklists = []
+  let checklistsLoaded = false
   let editingChecklistId = null
   
   // Outdoor activities database
@@ -3697,6 +3698,9 @@
             {color: '#1A252C', position: 100}
           ], true)
         }
+        
+        // Lazy load checklists on first access
+        loadChecklistsIfNeeded()
         renderChecklist()
       }
     })
@@ -5580,6 +5584,7 @@
   async function handleAuthSuccess(user) {
     isAuthenticated = true
     useSupabase = true
+    checklistsLoaded = false
     hideAuthModal()
     
     // Show loader while loading data
@@ -5729,20 +5734,9 @@
         created: item.created_at
       }))
       
-      // Load checklists
-      const supabaseChecklists = await SupabaseService.getAllChecklists()
-      checklists = supabaseChecklists.map(cl => ({
-        id: cl.id,
-        name: cl.name,
-        tags: cl.activities || [], // Map activities back to tags for frontend
-        startDate: cl.start_date || null,
-        endDate: cl.end_date || null,
-        items: (cl.items || []).map(item => ({
-          ...item,
-          category: item.category === 'Bag / Package' ? 'Packs & Bags' : item.category
-        })),
-        created: cl.created_at
-      }))
+      // Load checklists lazily (only when needed)
+      // Don't load checklists on initial page load to speed up startup
+      checklists = []
       
       // Load category order
       const orderData = await SupabaseService.getCategoryOrder()
@@ -5779,6 +5773,33 @@
       alert('Error loading data: ' + err.message)
     } finally {
       isLoading = false
+    }
+  }
+
+  // Lazy load checklists only when needed (on first tab switch)
+  async function loadChecklistsIfNeeded() {
+    if (checklistsLoaded || !isAuthenticated) return
+    
+    try {
+      console.log('Loading checklists...')
+      const supabaseChecklists = await SupabaseService.getAllChecklists()
+      checklists = supabaseChecklists.map(cl => ({
+        id: cl.id,
+        name: cl.name,
+        tags: cl.activities || [],
+        startDate: cl.start_date || null,
+        endDate: cl.end_date || null,
+        items: (cl.items || []).map(item => ({
+          ...item,
+          category: item.category === 'Bag / Package' ? 'Packs & Bags' : item.category
+        })),
+        created: cl.created_at
+      }))
+      checklistsLoaded = true
+      renderChecklist()
+      console.log(`Loaded ${checklists.length} checklists`)
+    } catch (err) {
+      console.error('Error loading checklists:', err)
     }
   }
   
@@ -6080,6 +6101,7 @@
       await SupabaseService.signOut()
       isAuthenticated = false
       useSupabase = false
+      checklistsLoaded = false
       // Show sign in button and hide user status
       signInBtn.style.display = 'block'
       userStatus.style.display = 'none'
