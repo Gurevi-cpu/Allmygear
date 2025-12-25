@@ -1,13 +1,21 @@
 // Supabase Service Layer
 // Handles authentication, database operations, and storage
 
+// Helper to ensure supabase is initialized
+function getSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized. Please refresh the page.')
+  }
+  return supabase
+}
+
 const SupabaseService = {
   currentUser: null,
   
   // ==================== AUTHENTICATION ====================
   
   async signInWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -18,7 +26,7 @@ const SupabaseService = {
   },
   
   async signInWithApple() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'apple',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -29,7 +37,7 @@ const SupabaseService = {
   },
   
   async signInWithGitHub() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'github',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -40,7 +48,7 @@ const SupabaseService = {
   },
   
   async signInWithDiscord() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'discord',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -51,7 +59,7 @@ const SupabaseService = {
   },
   
   async signInWithFacebook() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'facebook',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -62,7 +70,7 @@ const SupabaseService = {
   },
   
   async signInWithTwitter() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: 'twitter',
       options: {
         redirectTo: window.location.origin + window.location.pathname
@@ -73,7 +81,7 @@ const SupabaseService = {
   },
   
   async signInWithEmail(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await getSupabase().auth.signInWithPassword({
       email,
       password
     })
@@ -83,7 +91,7 @@ const SupabaseService = {
   },
   
   async signUpWithEmail(email, password, nickname) {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await getSupabase().auth.signUp({
       email,
       password,
       options: {
@@ -98,19 +106,19 @@ const SupabaseService = {
   },
   
   async signOut() {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await getSupabase().auth.signOut()
     if (error) throw error
     this.currentUser = null
   },
   
   async getCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getSupabase().auth.getUser()
     this.currentUser = user
     return user
   },
   
   onAuthStateChange(callback) {
-    return supabase.auth.onAuthStateChanged((event, session) => {
+    return getSupabase().auth.onAuthStateChanged((event, session) => {
       this.currentUser = session?.user || null
       callback(event, session)
     })
@@ -133,7 +141,7 @@ const SupabaseService = {
     
     // Update password separately if provided
     if (newPassword) {
-      const { error: pwdError } = await supabase.auth.updateUser({
+      const { error: pwdError } = await getSupabase().auth.updateUser({
         password: newPassword
       })
       if (pwdError) {
@@ -144,7 +152,7 @@ const SupabaseService = {
     
     // Update user metadata (nickname and avatar)
     if (updates.data) {
-      const { data, error } = await supabase.auth.updateUser(updates)
+      const { data, error } = await getSupabase().auth.updateUser(updates)
       if (error) {
         console.error('Metadata update error:', error)
         throw error
@@ -514,7 +522,7 @@ const SupabaseService = {
     // Generate path: users/{userId}/{itemId}.jpg
     const filePath = `${this.currentUser.id}/${itemId}.jpg`
     
-    const { data, error } = await supabase.storage
+    const { data, error } = await getSupabase().storage
       .from('gear-photos')
       .upload(filePath, blob, {
         contentType: 'image/jpeg',
@@ -550,7 +558,7 @@ const SupabaseService = {
 
     // Try to get signed URL for storage file
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await getSupabase().storage
         .from('gear-photos')
         .createSignedUrl(imagePath, 3600);
       if (error) {
@@ -601,7 +609,7 @@ const SupabaseService = {
         const batchResults = await Promise.all(
           batch.map(async (path) => {
             try {
-              const { data, error } = await supabase.storage
+              const { data, error } = await getSupabase().storage
                 .from('gear-photos')
                 .createSignedUrl(path, 3600)
               if (error) return { path, url: null }
@@ -630,7 +638,7 @@ const SupabaseService = {
   async deletePhoto(imagePath) {
     if (!this.currentUser || !imagePath) return
     
-    const { error } = await supabase.storage
+    const { error } = await getSupabase().storage
       .from('gear-photos')
       .remove([imagePath])
     
